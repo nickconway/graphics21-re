@@ -4,9 +4,22 @@
 # Explicitly declare text files you want to always be normalized and converted
 # to native line endings on checkout.
 *.cpp text
+*.cxx text
+*.cc text
 *.c text
+*.hpp text
+*.hxx text
+*.hh text
 *.h text
+*.inl text
+*.ixx text
+*.ii text
+*.i text
+
+*.ray text
+
 *.txt text
+
 
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
