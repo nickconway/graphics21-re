@@ -1,0 +1,10 @@
+CMSC 435/634 Assignment 1a rubric
+=================================
+
+2/2 - Shared github username
+2/2 - Forked class repository
+2/2 - Committed file change
+2/2 - Pushed change to github
+2/2 - Tagged as assn1a
+-----
+10/10 Total
