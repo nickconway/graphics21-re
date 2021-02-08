@@ -39,3 +39,5 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Bb]uild/
+
+.vscode

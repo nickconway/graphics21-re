@@ -1,0 +1,3 @@
+External Resources:
+
+For c++ file i/o: https://www.geeksforgeeks.org/file-handling-c-classes/
