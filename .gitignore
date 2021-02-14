@@ -41,3 +41,5 @@ bld/
 [Bb]uild/
 
 .vscode
+
+/trace/test

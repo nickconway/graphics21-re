@@ -1,3 +1,7 @@
+What doesn't work:
+
+When rendering objects behind one another, the front objects may have pixels that take the color of the back objects.
+
 External Resources:
 
 For c++ file i/o: https://www.geeksforgeeks.org/file-handling-c-classes/

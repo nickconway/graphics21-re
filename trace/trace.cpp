@@ -61,13 +61,13 @@ class Vector3D{
 
 	}
 
-	Vector3D cross_product(Vector3D vec){
+	Vector3D crossProduct(Vector3D vec){
 
 		return Vector3D(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x);
 
 	}
 
-	float dot_product(Vector3D vec){
+	float dotProduct(Vector3D vec){
 
 		return x * vec.x + y * vec.y + z * vec.z;
 
@@ -96,12 +96,22 @@ class Sphere{
 
 };
 
+class Intersection{
+
+	public:
+
+	float t;
+	Sphere sphere;
+
+};
+
 class Ray{
 
 	public:
 
 	Vector3D e;
 	Vector3D d;
+	vector<Intersection> intersections;
 
 	Ray(Vector3D e, Vector3D d): e(e), d(d){}
 
@@ -113,7 +123,7 @@ class Ray{
 
 	float getDiscriminant(Vector3D c, float r){
 
-		return pow(d.dot_product(e - c), 2) - d.dot_product(d) * ((e - c).dot_product(e - c) - pow(r, 2));
+		return pow(d.dotProduct(e - c), 2) - d.dotProduct(d) * ((e - c).dotProduct(e - c) - pow(r, 2));
 
 	}
 
@@ -123,13 +133,30 @@ class Ray{
 
 	}
 
+	void getIntersections(Vector3D c, float r, Sphere sphere){
+
+		float t;
+		Intersection intersection;
+
+		t = ((d * -1).dotProduct(e - c) + sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
+		intersection.t = t;
+		intersection.sphere = sphere;
+		intersections.push_back(intersection);
+
+		t = ((d * -1).dotProduct(e - c) - sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
+		intersection.t = t;
+		intersection.sphere = sphere;
+		intersections.push_back(intersection);
+
+	}
+
 };
 
 int main(){
 
 	// Initialize variables
-	int height, width;
-	float hfov, vfov;
+	int height = 0, width = 0;
+	float hfov = 0, vfov = 0;
 	vector<float> background;
 	Vector3D eyep;
 	Vector3D lookp;
@@ -245,35 +272,17 @@ int main(){
 
 	}
 
-	// For debugging file input
-	// cout << background.at(0) << " " << background.at(1) << " " << background.at(2) << endl;
-	// cout << "eyep: " << eyep << endl;
-	// cout << "lookp: " << lookp << endl;
-	// cout << "up: " << up << endl;
-	// cout << hfov << " " << vfov << endl;
-	// cout << width << " " << height << endl;
-
-	// for(auto it = surfaces.begin(); it != surfaces.end(); ++it){
-	// 	cout << "Surface: " << it->surfaceID << " " << it->diffuseR << " " << it->diffuseG << " " << it->diffuseB << endl;
-	// }
-
-	// for(auto it = spheres.begin(); it != spheres.end(); ++it){
-	// 	cout << "Sphere: " << it->surfaceID << " " << it->radius << " " << it->centerX << " " << it->centerY << " " << it->centerZ << endl;
-	// }
-
 	Vector3D d = eyep - lookp;
 	float top, bottom, left, right;
 
 	top = d.length() * tan((vfov * 3.14159 / 180) / 2);
 	bottom = -top;
-	left = d.length() * tan(-(hfov * 3.14159 / 180) / 2);
+	left = d.length() * tan(- (hfov * 3.14159 / 180) / 2);
 	right = -left;
 
-	cout << left << " " << right << endl;
-
 	Vector3D w(d.normalization());
-	Vector3D u(up.cross_product(w).normalization());
-	Vector3D v(w.cross_product(u));
+	Vector3D u(up.crossProduct(w).normalization());
+	Vector3D v(w.crossProduct(u));
 
 	unsigned char *pixels = new unsigned char[height * width * 3];
 
@@ -281,9 +290,7 @@ int main(){
 
 		for(int x = 0; x < width; x++){
 
-			bool intersects = false;
 			vector<float> color;
-			vector<float> tValues;
 
 			// Calculate pixel location in world space
 			float us = left + (right - left) * (x + .5) / width;
@@ -298,24 +305,48 @@ int main(){
 
 				if(ray.intersectsSphere(*sphere)){
 
-					intersects = true;
-
-					for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
-
-						if(surface->surfaceID == sphere->surfaceID){
-
-							color.push_back(surface->diffuseR);
-							color.push_back(surface->diffuseG);
-							color.push_back(surface->diffuseB);
-
-						}
-					}
+					ray.getIntersections(sphere->center, sphere->radius, *sphere);
 
 				}
 
 			}
 
-			if(intersects){
+			if(!ray.intersections.empty()){
+
+				// Find closest object
+				float closestT = ray.intersections.begin()->t;
+				Sphere closestSphere;
+				for(auto intersection = ray.intersections.begin(); intersection != ray.intersections.end(); ++intersection){
+
+					if(intersection->t > 0 && intersection->t < closestT){
+
+						closestSphere = intersection->sphere;
+
+					}
+
+				}
+
+				for(auto sphere = spheres.begin(); sphere != spheres.end(); ++sphere){
+
+					if((ray.p(closestT) - sphere->center).dotProduct(ray.p(closestT) - sphere->center) - pow(sphere->radius, 2) == 0){
+
+						closestSphere = *sphere;
+
+					}
+
+				}
+
+				for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
+
+					if(surface->surfaceID == closestSphere.surfaceID){
+
+						color.push_back(surface->diffuseR);
+						color.push_back(surface->diffuseG);
+						color.push_back(surface->diffuseB);
+
+					}
+
+				}
 
 				pixels[y * width * 3 + x * 3 + 0] = (color.at(0) < 0) ? 0 : (color.at(0) > 1) ? 255 : (unsigned char)(color.at(0) * 255);
 				pixels[y * width * 3 + x * 3 + 1] = (color.at(1) < 0) ? 0 : (color.at(1) > 1) ? 255 : (unsigned char)(color.at(1) * 255);
@@ -332,21 +363,6 @@ int main(){
 		}
 
 	}
-
-	// Test image drawing
-	// for(int y = 0; y < height; y++){
-
-	// 	for(int x = 0; x < width; x++){
-
-	// 		int pixel = y * width + x;
-
-	// 		pixels[y * width * 3 + x * 3 + 0] = 255;
-	// 		pixels[y * width * 3 + x * 3 + 1] = 128;
-	// 		pixels[y * width * 3 + x * 3 + 2] = 64;
-
-	// 	}
-
-	// }
 
 	FILE *f = fopen("trace.ppm","wb");
 	fprintf(f, "P6\n%d %d\n255\n", width, height);
