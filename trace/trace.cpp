@@ -3,8 +3,58 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cmath>
 
 using namespace std;
+
+class Vector3D{
+	public:
+
+	float x;
+	float y;
+	float z;
+
+	Vector3D(){
+
+		x = 0;
+		y = 0;
+		z = 0;
+
+	}
+
+	Vector3D(float x, float y, float z): x(x), y(y), z(z){}
+
+	Vector3D operator+(Vector3D vec){
+
+		return Vector3D(x + vec.x, y + vec.y, z + vec.z);
+
+	}
+
+	Vector3D operator-(Vector3D vec){
+
+		return Vector3D(x - vec.x, y - vec.y, z - vec.z);
+
+	}
+
+	Vector3D operator*(int scalar){
+
+		return Vector3D(x * scalar, y * scalar, z * scalar);
+
+	}
+
+	float dot_product(Vector3D vec){
+
+		return x * vec.x + y * vec.y + z * vec.z;
+
+	}
+
+	float normalization(){
+
+		return sqrt((sqrt(pow(x, 2) + pow(y, 2)), 2) + pow(z, 2));
+
+	}
+
+};
 
 class Surface{
 
@@ -22,10 +72,10 @@ class Sphere{
 	public:
 
 	string surfaceID;
+	float radius;
 	float centerX;
 	float centerY;
 	float centerZ;
-	float radius;
 
 };
 
@@ -35,9 +85,9 @@ int main(){
 	int height, width;
 	float hfov, vfov;
 	vector<float> background;
-	vector<float> eyep;
-	vector<float> lookp;
-	vector<float> up;
+	Vector3D eyep;
+	Vector3D lookp;
+	Vector3D up;
 	vector<Surface> surfaces;
 	vector<Sphere> spheres;
 
@@ -60,32 +110,33 @@ int main(){
 		// Get eyep values
 		} else if(word == "eyep"){
 
-			for(int i = 0; i < 3; i++){
+			rayFile >> word;
+			eyep.x = stof(word);
+			rayFile >> word;
+			eyep.y = stof(word);
+			rayFile >> word;
+			eyep.z = stof(word);
 
-				rayFile >> word;
-				eyep.push_back(stof(word));
-
-			}
 
 		// Get lookp values
 		} else if(word == "lookp"){
 
-			for(int i = 0; i < 3; i++){
-
-				rayFile >> word;
-				lookp.push_back(stof(word));
-
-			}
+			rayFile >> word;
+			lookp.x = stof(word);
+			rayFile >> word;
+			lookp.y = stof(word);
+			rayFile >> word;
+			lookp.z = stof(word);
 
 		// Get up values
 		} else if(word == "up"){
 
-			for(int i = 0; i < 3; i++){
-
-				rayFile >> word;
-				up.push_back(stof(word));
-
-			}
+			rayFile >> word;
+			up.x = stof(word);
+			rayFile >> word;
+			up.y = stof(word);
+			rayFile >> word;
+			up.z = stof(word);
 
 		// Get fov values
 		} else if(word == "fov"){
@@ -134,13 +185,13 @@ int main(){
 
 			// Get sphere values
 			rayFile >> word;
+			newSphere.radius = stof(word);
+			rayFile >> word;
 			newSphere.centerX = stof(word);
 			rayFile >> word;
 			newSphere.centerY = stof(word);
 			rayFile >> word;
 			newSphere.centerZ = stof(word);
-			rayFile >> word;
-			newSphere.radius = stof(word);
 
 			spheres.push_back(newSphere);
 
@@ -148,7 +199,46 @@ int main(){
 
 	}
 
+	// For debugging file input
+	// cout << background.at(0) << " " << background.at(1) << " " << background.at(2) << endl;
+	// cout << eyep.x << " " << eyep.y << " " << eyep.z << endl;
+	// cout << lookp.x << " " << lookp.y << " " << lookp.z << endl;
+	// cout << up.x << " " << up.y << " " << up.z << endl;
+	// cout << hfov << " " << vfov << endl;
+	// cout << width << " " << height << endl;
+
+	// for(auto it = surfaces.begin(); it != surfaces.end(); ++it){
+	// 	cout << "Surface: " << it->surfaceID << " " << it->diffuseR << " " << it->diffuseG << " " << it->diffuseB << endl;
+	// }
+
+	// for(auto it = spheres.begin(); it != spheres.end(); ++it){
+	// 	cout << "Sphere: " << it->surfaceID << " " << it->radius << " " << it->centerX << " " << it->centerY << " " << it->centerZ << endl;
+	// }
+
+	Vector3D d = eyep - lookp;
+	float top, bottom, left, right;
+	top = d.normalization() * tan((vfov * 3.14159 / 180) / 2);
+	bottom = -top;
+	left = d.normalization() * tan((hfov * 3.14159 / 180) / 2);
+	right = -left;
+
+	cout << top << " " << bottom << " " << left << " " << right << endl;
+	cout << d.normalization() << endl;
+
 	unsigned char *pixels = new unsigned char[height * width * 3];
+
+	for(int y = 0; y < height; y++){
+
+		for(int x = 0; x < width; x++){
+
+			int t = y * width + x;
+			Vector3D ray(eyep.x + t * d.x, eyep.y + t * d.y, eyep.z + t * d.z);
+			// cout << ray.x << " " << ray.y << " " << ray.z << endl;
+
+			float us, vs;
+
+		}
+	}
 
 	// Test image drawing
 	// for(int y = 0; y < height; y++){
@@ -165,26 +255,6 @@ int main(){
 	fclose(f);
 
 	rayFile.close();
-
-	// For debugging file input
-	// cout << background.at(0) << " " << background.at(1) << " " << background.at(2) << endl;
-	// cout << eyep.at(0) << " " << eyep.at(1) << " " << eyep.at(2) << endl;
-	// cout << lookp.at(0) << " " << lookp.at(1) << " " << lookp.at(2) << endl;
-	// cout << up.at(0) << " " << up.at(1) << " " << up.at(2) << endl;
-	// cout << hfov << " " << vfov << endl;
-	// cout << width << " " << height << endl;
-
-	// for(auto it = surfaces.begin(); it != surfaces.end(); ++it){
-
-	// 	cout << "Surface: " << it->surfaceID << " " << it->diffuseR << " " << it->diffuseG << " " << it->diffuseB << endl;
-
-	// }
-
-	// for(auto it = spheres.begin(); it != spheres.end(); ++it){
-
-	// 	cout << "Sphere: " << it->surfaceID << " " << it->centerX << " " << it->centerY << " " << it->centerZ << endl;
-
-	// }
 
 	return 0;
 
