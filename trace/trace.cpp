@@ -7,6 +7,7 @@
 
 using namespace std;
 
+// Vector in 3d space
 class Vector3D{
 	public:
 
@@ -24,49 +25,49 @@ class Vector3D{
 
 	Vector3D(float x, float y, float z): x(x), y(y), z(z){}
 
-	friend ostream &operator<<(ostream &output, Vector3D vec){
-
-		output << vec.x << " " << vec.y << " " << vec.z;
-		return output;
-
-	}
-
+	// Vector addition
 	Vector3D operator+(Vector3D vec){
 
 		return Vector3D(x + vec.x, y + vec.y, z + vec.z);
 
 	}
 
+	// Vector subtraction
 	Vector3D operator-(Vector3D vec){
 
 		return Vector3D(x - vec.x, y - vec.y, z - vec.z);
 
 	}
 
+	// Vector scalar multiplication
 	Vector3D operator*(float scalar){
 
 		return Vector3D(x * scalar, y * scalar, z * scalar);
 
 	}
 
+	// Calculate vector length
 	float length(){
 
 		return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
 
 	}
 
+	// Calculation normalization of vector
 	Vector3D normalization(){
 
 		return Vector3D(x / length(), y / length(), z / length());
 
 	}
 
+	// Calculate cross product of two vectors
 	Vector3D crossProduct(Vector3D vec){
 
 		return Vector3D(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x);
 
 	}
 
+	// Calculate dot product of two vectors
 	float dotProduct(Vector3D vec){
 
 		return x * vec.x + y * vec.y + z * vec.z;
@@ -80,9 +81,7 @@ class Surface{
 	public:
 
 	string surfaceID;
-	float diffuseR;
-	float diffuseG;
-	float diffuseB;
+	vector<float> diffuse;
 
 };
 
@@ -109,35 +108,41 @@ class Ray{
 
 	public:
 
+	// Origin, direction, list of intersections
 	Vector3D e;
 	Vector3D d;
 	vector<Intersection> intersections;
 
 	Ray(Vector3D e, Vector3D d): e(e), d(d){}
 
+	// Parametric ray form
 	Vector3D p(float t){
 
 		return Vector3D(e + d * t);
 
 	}
 
+	// Calculate discriminant for finding intersection
 	float getDiscriminant(Vector3D c, float r){
 
 		return pow(d.dotProduct(e - c), 2) - d.dotProduct(d) * ((e - c).dotProduct(e - c) - pow(r, 2));
 
 	}
 
+	// Checks if the ray intersects a sphere
 	bool intersectsSphere(Sphere sphere){
 
 		return getDiscriminant(sphere.center, sphere.radius) >= 0;
 
 	}
 
+	// Gets intersection data
 	void getIntersections(Vector3D c, float r, Sphere sphere){
 
 		float t;
 		Intersection intersection;
 
+		// Calculate intersection locations along the ray
 		t = ((d * -1).dotProduct(e - c) + sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
 		intersection.t = t;
 		intersection.sphere = sphere;
@@ -236,11 +241,11 @@ int main(){
 				if(word == "diffuse"){
 
 					rayFile >> word;
-					newSurface.diffuseR = stof(word);
+					newSurface.diffuse.push_back(stof(word));
 					rayFile >> word;
-					newSurface.diffuseG = stof(word);
+					newSurface.diffuse.push_back(stof(word));
 					rayFile >> word;
-					newSurface.diffuseB = stof(word);
+					newSurface.diffuse.push_back(stof(word));
 
 					surfaces.push_back(newSurface);
 
@@ -272,9 +277,10 @@ int main(){
 
 	}
 
+	// Create orthogonal basis and other necessities
 	Vector3D d = eyep - lookp;
-	float top, bottom, left, right;
 
+	float top, bottom, left, right;
 	top = d.length() * tan((vfov * 3.14159 / 180) / 2);
 	bottom = -top;
 	left = d.length() * tan(- (hfov * 3.14159 / 180) / 2);
@@ -286,11 +292,13 @@ int main(){
 
 	unsigned char *pixels = new unsigned char[height * width * 3];
 
+	// Find color for each pixel
 	for(int y = 0; y < height; y++){
 
 		for(int x = 0; x < width; x++){
 
-			vector<float> color;
+			// Color is the background color if there is no intersection
+			vector<float> color = background;
 
 			// Calculate pixel location in world space
 			float us = left + (right - left) * (x + .5) / width;
@@ -311,6 +319,7 @@ int main(){
 
 			}
 
+			// When ray hits an object
 			if(!ray.intersections.empty()){
 
 				// Find closest object
@@ -318,52 +327,38 @@ int main(){
 				Sphere closestSphere;
 				for(auto intersection = ray.intersections.begin(); intersection != ray.intersections.end(); ++intersection){
 
-					if(intersection->t > 0 && intersection->t < closestT){
+					if(0 < intersection->t && intersection->t < closestT){
 
+						closestT = intersection->t;
 						closestSphere = intersection->sphere;
 
 					}
 
 				}
 
-				for(auto sphere = spheres.begin(); sphere != spheres.end(); ++sphere){
-
-					if((ray.p(closestT) - sphere->center).dotProduct(ray.p(closestT) - sphere->center) - pow(sphere->radius, 2) == 0){
-
-						closestSphere = *sphere;
-
-					}
-
-				}
-
+				// Get pixel color from surface
 				for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
 
 					if(surface->surfaceID == closestSphere.surfaceID){
 
-						color.push_back(surface->diffuseR);
-						color.push_back(surface->diffuseG);
-						color.push_back(surface->diffuseB);
+						color = surface->diffuse;
 
 					}
 
 				}
 
-				pixels[y * width * 3 + x * 3 + 0] = (color.at(0) < 0) ? 0 : (color.at(0) > 1) ? 255 : (unsigned char)(color.at(0) * 255);
-				pixels[y * width * 3 + x * 3 + 1] = (color.at(1) < 0) ? 0 : (color.at(1) > 1) ? 255 : (unsigned char)(color.at(1) * 255);
-				pixels[y * width * 3 + x * 3 + 2] = (color.at(2) < 0) ? 0 : (color.at(2) > 1) ? 255 : (unsigned char)(color.at(2) * 255);
-
-			} else {
-
-				pixels[y * width * 3 + x * 3 + 0] = (background.at(0) < 0) ? 0 : (background.at(0) > 1) ? 255 : (unsigned char)(background.at(0) * 255);
-				pixels[y * width * 3 + x * 3 + 1] = (background.at(1) < 0) ? 0 : (background.at(1) > 1) ? 255 : (unsigned char)(background.at(1) * 255);
-				pixels[y * width * 3 + x * 3 + 2] = (background.at(2) < 0) ? 0 : (background.at(2) > 1) ? 255 : (unsigned char)(background.at(2) * 255);
-
 			}
+
+			// Calculate pixel color values
+			pixels[y * width * 3 + x * 3 + 0] = (color.at(0) < 0) ? 0 : (color.at(0) > 1) ? 255 : (unsigned char)(color.at(0) * 255);
+			pixels[y * width * 3 + x * 3 + 1] = (color.at(1) < 0) ? 0 : (color.at(1) > 1) ? 255 : (unsigned char)(color.at(1) * 255);
+			pixels[y * width * 3 + x * 3 + 2] = (color.at(2) < 0) ? 0 : (color.at(2) > 1) ? 255 : (unsigned char)(color.at(2) * 255);
 
 		}
 
 	}
 
+	// Write to image file
 	FILE *f = fopen("trace.ppm","wb");
 	fprintf(f, "P6\n%d %d\n255\n", width, height);
 	fwrite(pixels, 1, height * width * 3, f);
