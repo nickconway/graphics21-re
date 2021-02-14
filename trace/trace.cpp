@@ -24,6 +24,13 @@ class Vector3D{
 
 	Vector3D(float x, float y, float z): x(x), y(y), z(z){}
 
+	friend ostream &operator<<(ostream &output, Vector3D vec){
+
+		output << vec.x << " " << vec.y << " " << vec.z;
+		return output;
+
+	}
+
 	Vector3D operator+(Vector3D vec){
 
 		return Vector3D(x + vec.x, y + vec.y, z + vec.z);
@@ -36,21 +43,33 @@ class Vector3D{
 
 	}
 
-	Vector3D operator*(int scalar){
+	Vector3D operator*(float scalar){
 
 		return Vector3D(x * scalar, y * scalar, z * scalar);
+
+	}
+
+	float length(){
+
+		return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+
+	}
+
+	Vector3D normalization(){
+
+		return Vector3D(x / length(), y / length(), z / length());
+
+	}
+
+	Vector3D cross_product(Vector3D vec){
+
+		return Vector3D(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x);
 
 	}
 
 	float dot_product(Vector3D vec){
 
 		return x * vec.x + y * vec.y + z * vec.z;
-
-	}
-
-	float normalization(){
-
-		return sqrt((sqrt(pow(x, 2) + pow(y, 2)), 2) + pow(z, 2));
 
 	}
 
@@ -73,9 +92,36 @@ class Sphere{
 
 	string surfaceID;
 	float radius;
-	float centerX;
-	float centerY;
-	float centerZ;
+	Vector3D center;
+
+};
+
+class Ray{
+
+	public:
+
+	Vector3D e;
+	Vector3D d;
+
+	Ray(Vector3D e, Vector3D d): e(e), d(d){}
+
+	Vector3D p(float t){
+
+		return Vector3D(e + d * t);
+
+	}
+
+	float getDiscriminant(Vector3D c, float r){
+
+		return pow(d.dot_product(e - c), 2) - d.dot_product(d) * ((e - c).dot_product(e - c) - pow(r, 2));
+
+	}
+
+	bool intersectsSphere(Sphere sphere){
+
+		return getDiscriminant(sphere.center, sphere.radius) >= 0;
+
+	}
 
 };
 
@@ -92,9 +138,9 @@ int main(){
 	vector<Sphere> spheres;
 
 	// Read from ray file
-	string word;
 	ifstream rayFile("../balls-3.ray");
 
+	string word;
 	while(rayFile >> word){
 
 		// Get background color
@@ -187,11 +233,11 @@ int main(){
 			rayFile >> word;
 			newSphere.radius = stof(word);
 			rayFile >> word;
-			newSphere.centerX = stof(word);
+			newSphere.center.x = stof(word);
 			rayFile >> word;
-			newSphere.centerY = stof(word);
+			newSphere.center.y = stof(word);
 			rayFile >> word;
-			newSphere.centerZ = stof(word);
+			newSphere.center.z = stof(word);
 
 			spheres.push_back(newSphere);
 
@@ -201,9 +247,9 @@ int main(){
 
 	// For debugging file input
 	// cout << background.at(0) << " " << background.at(1) << " " << background.at(2) << endl;
-	// cout << eyep.x << " " << eyep.y << " " << eyep.z << endl;
-	// cout << lookp.x << " " << lookp.y << " " << lookp.z << endl;
-	// cout << up.x << " " << up.y << " " << up.z << endl;
+	// cout << "eyep: " << eyep << endl;
+	// cout << "lookp: " << lookp << endl;
+	// cout << "up: " << up << endl;
 	// cout << hfov << " " << vfov << endl;
 	// cout << width << " " << height << endl;
 
@@ -217,13 +263,17 @@ int main(){
 
 	Vector3D d = eyep - lookp;
 	float top, bottom, left, right;
-	top = d.normalization() * tan((vfov * 3.14159 / 180) / 2);
+
+	top = d.length() * tan((vfov * 3.14159 / 180) / 2);
 	bottom = -top;
-	left = d.normalization() * tan((hfov * 3.14159 / 180) / 2);
+	left = d.length() * tan(-(hfov * 3.14159 / 180) / 2);
 	right = -left;
 
-	cout << top << " " << bottom << " " << left << " " << right << endl;
-	cout << d.normalization() << endl;
+	cout << left << " " << right << endl;
+
+	Vector3D w(d.normalization());
+	Vector3D u(up.cross_product(w).normalization());
+	Vector3D v(w.cross_product(u));
 
 	unsigned char *pixels = new unsigned char[height * width * 3];
 
@@ -231,27 +281,76 @@ int main(){
 
 		for(int x = 0; x < width; x++){
 
-			int t = y * width + x;
-			Vector3D ray(eyep.x + t * d.x, eyep.y + t * d.y, eyep.z + t * d.z);
-			// cout << ray.x << " " << ray.y << " " << ray.z << endl;
+			bool intersects = false;
+			vector<float> color;
+			vector<float> tValues;
 
-			float us, vs;
+			// Calculate pixel location in world space
+			float us = left + (right - left) * (x + .5) / width;
+			float vs = top + (bottom - top) * (y + .5) / height;
+			Vector3D s(eyep + u.normalization() * us + v.normalization() * vs - w.normalization() * d.length());
+
+			// Calculate ray from pixel location
+			Ray ray(eyep, s - eyep);
+
+			// Calculate intersections
+			for(auto sphere = spheres.begin(); sphere != spheres.end(); ++sphere){
+
+				if(ray.intersectsSphere(*sphere)){
+
+					intersects = true;
+
+					for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
+
+						if(surface->surfaceID == sphere->surfaceID){
+
+							color.push_back(surface->diffuseR);
+							color.push_back(surface->diffuseG);
+							color.push_back(surface->diffuseB);
+
+						}
+					}
+
+				}
+
+			}
+
+			if(intersects){
+
+				pixels[y * width * 3 + x * 3 + 0] = (color.at(0) < 0) ? 0 : (color.at(0) > 1) ? 255 : (unsigned char)(color.at(0) * 255);
+				pixels[y * width * 3 + x * 3 + 1] = (color.at(1) < 0) ? 0 : (color.at(1) > 1) ? 255 : (unsigned char)(color.at(1) * 255);
+				pixels[y * width * 3 + x * 3 + 2] = (color.at(2) < 0) ? 0 : (color.at(2) > 1) ? 255 : (unsigned char)(color.at(2) * 255);
+
+			} else {
+
+				pixels[y * width * 3 + x * 3 + 0] = (background.at(0) < 0) ? 0 : (background.at(0) > 1) ? 255 : (unsigned char)(background.at(0) * 255);
+				pixels[y * width * 3 + x * 3 + 1] = (background.at(1) < 0) ? 0 : (background.at(1) > 1) ? 255 : (unsigned char)(background.at(1) * 255);
+				pixels[y * width * 3 + x * 3 + 2] = (background.at(2) < 0) ? 0 : (background.at(2) > 1) ? 255 : (unsigned char)(background.at(2) * 255);
+
+			}
 
 		}
+
 	}
 
 	// Test image drawing
 	// for(int y = 0; y < height; y++){
+
 	// 	for(int x = 0; x < width; x++){
+
+	// 		int pixel = y * width + x;
+
 	// 		pixels[y * width * 3 + x * 3 + 0] = 255;
 	// 		pixels[y * width * 3 + x * 3 + 1] = 128;
 	// 		pixels[y * width * 3 + x * 3 + 2] = 64;
+
 	// 	}
+
 	// }
 
 	FILE *f = fopen("trace.ppm","wb");
 	fprintf(f, "P6\n%d %d\n255\n", width, height);
-	fwrite(pixels, 1, height*width*3, f);
+	fwrite(pixels, 1, height * width * 3, f);
 	fclose(f);
 
 	rayFile.close();
