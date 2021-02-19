@@ -1,0 +1,22 @@
+CMSC 435 Assignment 1 rubric
+============================
+
+20/20 - Basics
+    5/ 5 - Useful assn1.txt
+    5/ 5 - All source files submitted, no build files
+    5/ 5 - Multiple checkins during development
+    5/ 5 - Compiles and executes without error  
+20/20 - I/O
+    10/10  Parse the file correctly
+    10/10  Output image
+30/30 - Setting up rays
+    15/15  Calculate pixel positions/image plane
+    10/10  Field of view 
+    5/ 5  Calculate ray 
+20/20 - Intersection
+    10/10  Ray/Sphere intersection
+    10/10  Closest surface
+-----
+90/90 Total
+
+Everything works (I think)
