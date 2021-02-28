@@ -83,6 +83,9 @@ class Surface{
 	string surfaceID;
 	vector<float> ambient;
 	vector<float> diffuse;
+	vector<float> specular;
+	float specpow;
+	float reflect;
 
 };
 
@@ -205,14 +208,28 @@ class Ray{
 
 	}
 
-	bool probe(Vector3D start, Vector3D direction, vector<Sphere> spheres){
+	bool probe(Vector3D e, Vector3D d, float distance, vector<Sphere> spheres){
 
-		Ray ray(start, direction);
+		Ray ray(e, d);
 
 		// Calculate intersections
 		ray.getIntersections(spheres);
 
-		return ray.intersections.empty();
+		if(!ray.intersections.empty()){
+
+			for(auto intersection : ray.intersections){
+
+				if(0 < (intersection.location - e).length() && (intersection.location - e).length() < distance){
+
+					return true;
+
+				}
+
+			}
+
+		}
+
+		return false;
 
 	}
 
@@ -237,23 +254,18 @@ class Ray{
 
 			}
 
-
-			color = closestSurface.diffuse;
+			color = closestSurface.ambient;
 			Vector3D p = closestIntersection.location;
 			Vector3D N = Vector3D(p - closestIntersection.sphere.center).normalization();
 
 			for(auto light = lights.begin(); light != lights.end(); light++){
 
-				Vector3D L = (p - light->position).normalization();
-				if(probe(p, p - light->position, spheres)){
+				Vector3D L = (light->position - p).normalization();
+				if(probe(p, L, (light->position - p).length(), spheres) && N.dotProduct(L) > 0){
 
-					if(N.dotProduct(L) > 0){
+					for(int i = 0; i < color.size(); i++){
 
-						for(int i = 0; i < color.size(); i++){
-
-							color.at(i) += (light->intensity * closestSurface.diffuse.at(i) * N.dotProduct(L));
-
-						}
+						color.at(i) += light->intensity * closestSurface.diffuse.at(i) * N.dotProduct(L);
 
 					}
 
@@ -283,6 +295,8 @@ int main(){
 	vector<Surface> surfaces;
 	vector<Sphere> spheres;
 	vector<Light> lights;
+
+	int surfaceCount = -1;
 
 	// Read from ray file
 	ifstream rayFile("../balls-3.ray");
@@ -359,44 +373,55 @@ int main(){
 
 			lights.push_back(newLight);
 
-		// Get surfaces
+		// Get surface ID
 		} else if(word == "surface"){
 
-			Surface newSurface;
+			Surface newSurface = Surface();
 			rayFile >> newSurface.surfaceID;
+			surfaces.push_back(newSurface);
+			surfaceCount += 1;
 
-			// Get surface attributes
-			while(rayFile >> word){
+		// Get surface ambient values
+		} else if(word == "ambient"){
 
-				// Get surface diffusion values
-				if(word == "ambient"){
+			rayFile >> word;
+			surfaces[surfaceCount].ambient.push_back(stof(word));
+			rayFile >> word;
+			surfaces[surfaceCount].ambient.push_back(stof(word));
+			rayFile >> word;
+			surfaces[surfaceCount].ambient.push_back(stof(word));
 
-					rayFile >> word;
-					newSurface.ambient.push_back(stof(word));
-					rayFile >> word;
-					newSurface.ambient.push_back(stof(word));
-					rayFile >> word;
-					newSurface.ambient.push_back(stof(word));
+		// Get surface diffusion values
+		} else if(word == "diffuse"){
 
-				}
+			rayFile >> word;
+			surfaces[surfaceCount].diffuse.push_back(stof(word));
+			rayFile >> word;
+			surfaces[surfaceCount].diffuse.push_back(stof(word));
+			rayFile >> word;
+			surfaces[surfaceCount].diffuse.push_back(stof(word));
 
-				// Get surface diffusion values
-				if(word == "diffuse"){
+		// Get surface specular values
+		} else if(word == "specular"){
 
-					rayFile >> word;
-					newSurface.diffuse.push_back(stof(word));
-					rayFile >> word;
-					newSurface.diffuse.push_back(stof(word));
-					rayFile >> word;
-					newSurface.diffuse.push_back(stof(word));
+			rayFile >> word;
+			surfaces[surfaceCount].specular.push_back(stof(word));
+			rayFile >> word;
+			surfaces[surfaceCount].specular.push_back(stof(word));
+			rayFile >> word;
+			surfaces[surfaceCount].specular.push_back(stof(word));
 
-					surfaces.push_back(newSurface);
+		// Get surface specular power
+		} else if(word == "specpow"){
 
-					break;
+			rayFile >> word;
+			surfaces[surfaceCount].specpow = stof(word);
 
-				}
+		// Get surface reflection value
+		} else if(word == "reflect"){
 
-			}
+			rayFile >> word;
+			surfaces[surfaceCount].reflect = stof(word);
 
 		// Get spheres
 		} else if(word == "sphere"){
