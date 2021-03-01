@@ -1,0 +1,13 @@
+What does work:
+
+Diffusion colors, specular locations, reflection colors
+
+What doesn't work:
+
+Specular values are too high, all three have black areas that should not be black (all three have the same affected areas). This may be an issue with how the closest surface is found, but I could not find a solution, and it does not seem like anyone else has this issue.
+
+External Resources:
+
+For c++ file i/o: https://www.geeksforgeeks.org/file-handling-c-classes/
+Fundamentals of Computer Graphics, 4th Edition
+Class Recordings
