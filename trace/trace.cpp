@@ -199,16 +199,20 @@ class Ray{
 
 				// Calculate intersection locations along the ray
 				t = ((d * -1).dotProduct(e - c) + sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
-				intersection.t = t;
-				intersection.sphere = *sphere;
-				intersection.location = parametric(t);
-				intersections.push_back(intersection);
+				if(t > 0.001){
+					intersection.t = t;
+					intersection.sphere = *sphere;
+					intersection.location = parametric(t);
+					intersections.push_back(intersection);
+				}
 
 				t = ((d * -1).dotProduct(e - c) - sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
-				intersection.t = t;
-				intersection.sphere = *sphere;
-				intersection.location = parametric(t);
-				intersections.push_back(intersection);
+				if(t > 0.001){
+					intersection.t = t;
+					intersection.sphere = *sphere;
+					intersection.location = parametric(t);
+					intersections.push_back(intersection);
+				}
 
 			}
 
@@ -246,7 +250,7 @@ bool anyhit(Ray ray, float distance, vector<Sphere> spheres){
 
 	for(auto intersection : ray.intersections){
 
-		if(intersection.t > 0.01 && (intersection.location - ray.e).length() < distance){
+		if(intersection.t > 0.01 && (intersection.location - ray.e).length() < distance && intersection.t <= 1){
 
 			return true;
 
@@ -315,7 +319,7 @@ Color trace(Ray ray, Color color, Color background, vector<Light> lights, vector
 
 	}
 
-	// color = color + trace(Ray(P, R), color, background, lights, surfaces, spheres, depth + 1, maxdepth, cutoff, reflectionCoefficient) * closestSurface.reflect;
+	color = color + trace(Ray(P, R), color, background, lights, surfaces, spheres, depth + 1, maxdepth, cutoff, reflectionCoefficient) * closestSurface.reflect;
 
 	return color;
 
