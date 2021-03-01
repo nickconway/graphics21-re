@@ -7,6 +7,38 @@
 
 using namespace std;
 
+class Color{
+
+	public:
+
+	float r;
+	float g;
+	float b;
+
+	Color(){
+		r = 0;
+		b = 0;
+		g = 0;
+	}
+
+	Color(float r, float g, float b): r(r), g(g), b(b){}
+
+	// Vector addition
+	Color operator+(Color color){
+
+		return Color(r + color.r, g + color.g, b + color.b);
+
+	}
+
+	// Vector scalar multiplication
+	Color operator*(float scalar){
+
+		return Color(r * scalar, g * scalar, b * scalar);
+
+	}
+
+};
+
 // Vector in 3d space
 class Vector3D{
 	public:
@@ -81,9 +113,9 @@ class Surface{
 	public:
 
 	string surfaceID;
-	vector<float> ambient;
-	vector<float> diffuse;
-	vector<float> specular;
+	Color ambient;
+	Color diffuse;
+	Color specular;
 	float specpow;
 	float reflect;
 
@@ -151,35 +183,32 @@ class Ray{
 
 	}
 
-	// Gets intersection data
-	void getSphereIntersections(Vector3D c, float r, Sphere sphere){
-
-		float t;
-		Intersection intersection;
-
-		// Calculate intersection locations along the ray
-		t = ((d * -1).dotProduct(e - c) + sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
-		intersection.t = t;
-		intersection.sphere = sphere;
-		intersection.location = parametric(t);
-		intersections.push_back(intersection);
-
-		t = ((d * -1).dotProduct(e - c) - sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
-		intersection.t = t;
-		intersection.sphere = sphere;
-		intersection.location = parametric(t);
-		intersections.push_back(intersection);
-
-	}
-
+	// Calculate intersections
 	void getIntersections(vector<Sphere> spheres){
 
-		// Calculate intersections
+		intersections.clear();
+
 		for(auto sphere = spheres.begin(); sphere != spheres.end(); ++sphere){
 
 			if(intersectsSphere(*sphere)){
 
-				getSphereIntersections(sphere->center, sphere->radius, *sphere);
+				float t;
+				Intersection intersection;
+				Vector3D c = sphere->center;
+				float r = sphere->radius;
+
+				// Calculate intersection locations along the ray
+				t = ((d * -1).dotProduct(e - c) + sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
+				intersection.t = t;
+				intersection.sphere = *sphere;
+				intersection.location = parametric(t);
+				intersections.push_back(intersection);
+
+				t = ((d * -1).dotProduct(e - c) - sqrt(getDiscriminant(c, r))) / (d.dotProduct(d));
+				intersection.t = t;
+				intersection.sphere = *sphere;
+				intersection.location = parametric(t);
+				intersections.push_back(intersection);
 
 			}
 
@@ -192,13 +221,13 @@ class Ray{
 
 		float closestT = intersections.begin()->t;
 		Intersection closestIntersection;
-		for(auto intersection = intersections.begin(); intersection != intersections.end(); ++intersection){
+		for(auto intersection : intersections){
 
-			if(0 < intersection->t && intersection->t < closestT){
+			if(0 < intersection.t && intersection.t < closestT){
 
-				closestIntersection.t = intersection->t;
-				closestIntersection.sphere = intersection->sphere;
-				closestIntersection.location = intersection->location;
+				closestIntersection.t = intersection.t;
+				closestIntersection.sphere = intersection.sphere;
+				closestIntersection.location = intersection.location;
 
 			}
 
@@ -208,78 +237,89 @@ class Ray{
 
 	}
 
-	bool probe(Vector3D e, Vector3D d, float distance, vector<Sphere> spheres){
 
-		Ray ray(e, d);
+};
 
-		// Calculate intersections
-		ray.getIntersections(spheres);
+bool anyhit(Ray ray, float distance, vector<Sphere> spheres){
 
-		if(!ray.intersections.empty()){
+	ray.getIntersections(spheres);
 
-			for(auto intersection : ray.intersections){
+	for(auto intersection : ray.intersections){
 
-				if(0 < (intersection.location - e).length() && (intersection.location - e).length() < distance){
+		if(intersection.t > 0.01 && (intersection.location - ray.e).length() < distance){
 
-					return true;
-
-				}
-
-			}
+			return true;
 
 		}
-
-		return false;
 
 	}
 
-	vector<float> trace(vector<float> background, vector<Light> lights, vector<Surface> surfaces, vector<Sphere> spheres){
+	return false;
 
-		vector<float> color = background;
+}
 
-		getIntersections(spheres);
-		Surface closestSurface;
+Color trace(Ray ray, Color color, Color background, vector<Light> lights, vector<Surface> surfaces, vector<Sphere> spheres, int depth, int maxdepth, float cutoff, float reflectionCoefficient){
 
-		if(!intersections.empty()){
+	ray.getIntersections(spheres);
+	Surface closestSurface;
 
-			Intersection closestIntersection = getClosestIntersection();
+	if(ray.intersections.empty()){
 
-			for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
+		return background;
 
-				if(surface->surfaceID == closestIntersection.sphere.surfaceID){
+	}
 
-					closestSurface = *surface;
+	Intersection closestIntersection = ray.getClosestIntersection();
 
-				}
+	for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
 
-			}
+		if(surface->surfaceID == closestIntersection.sphere.surfaceID){
 
-			color = closestSurface.ambient;
-			Vector3D p = closestIntersection.location;
-			Vector3D N = Vector3D(p - closestIntersection.sphere.center).normalization();
-
-			for(auto light = lights.begin(); light != lights.end(); light++){
-
-				Vector3D L = (light->position - p).normalization();
-				if(probe(p, L, (light->position - p).length(), spheres) && N.dotProduct(L) > 0){
-
-					for(int i = 0; i < color.size(); i++){
-
-						color.at(i) += light->intensity * closestSurface.diffuse.at(i) * N.dotProduct(L);
-
-					}
-
-				}
-
-			}
+			closestSurface = *surface;
 
 		}
+
+	}
+
+	reflectionCoefficient *= closestSurface.reflect;
+
+	if(depth == maxdepth || reflectionCoefficient < cutoff){
 
 		return color;
 
 	}
 
-};
+	color = closestSurface.ambient;
+	Vector3D P(closestIntersection.location);
+	Vector3D N((P - closestIntersection.sphere.center).normalization());
+	Vector3D R((ray.d - N * 2 * N.dotProduct(ray.d)).normalization());
+	Vector3D H((ray.d * -1 + R).normalization());
+
+	for(auto light = lights.begin(); light != lights.end(); light++){
+
+		Vector3D L = (light->position - P).normalization();
+
+		if(!anyhit(Ray(P, L), (light->position - P).length(), spheres) && N.dotProduct(L) > 0){
+
+			// Calculate diffusion value
+			color = color + closestSurface.diffuse * light->intensity * N.dotProduct(L);
+
+			if(N.dotProduct(H) > 0){
+
+				// Calculate specular value
+				color = color + closestSurface.specular * light->intensity * pow(N.dotProduct(H), closestSurface.specpow);
+
+			}
+
+		}
+
+	}
+
+	// color = color + trace(Ray(P, R), color, background, lights, surfaces, spheres, depth + 1, maxdepth, cutoff, reflectionCoefficient) * closestSurface.reflect;
+
+	return color;
+
+}
 
 int main(){
 
@@ -288,15 +328,13 @@ int main(){
 	float hfov = 0, vfov = 0;
 	int maxdepth = 15;
 	float cutoff = .002;
-	vector<float> background;
+	Color background;
 	Vector3D eyep;
 	Vector3D lookp;
 	Vector3D up;
 	vector<Surface> surfaces;
 	vector<Sphere> spheres;
 	vector<Light> lights;
-
-	int surfaceCount = -1;
 
 	// Read from ray file
 	ifstream rayFile("../balls-3.ray");
@@ -307,12 +345,12 @@ int main(){
 		// Get background color
 		if(word == "background"){
 
-			for(int i = 0; i < 3; i++){
-
-				rayFile >> word;
-				background.push_back(stof(word));
-
-			}
+			rayFile >> word;
+			background.r = stof(word);
+			rayFile >> word;
+			background.g = stof(word);
+			rayFile >> word;
+			background.b = stof(word);
 
 		// Get eyep values
 		} else if(word == "eyep"){
@@ -357,6 +395,16 @@ int main(){
 			rayFile >> width;
 			rayFile >> height;
 
+		// Get max depth
+		} else if(word == "maxdepth"){
+
+			rayFile >> maxdepth;
+
+		// Get image size
+		} else if(word == "cutoff"){
+
+			rayFile >> cutoff;
+
 		// Get lights
 		} else if(word == "light"){
 
@@ -379,49 +427,48 @@ int main(){
 			Surface newSurface = Surface();
 			rayFile >> newSurface.surfaceID;
 			surfaces.push_back(newSurface);
-			surfaceCount += 1;
 
 		// Get surface ambient values
 		} else if(word == "ambient"){
 
 			rayFile >> word;
-			surfaces[surfaceCount].ambient.push_back(stof(word));
+			surfaces[surfaces.size() - 1].ambient.r = stof(word);
 			rayFile >> word;
-			surfaces[surfaceCount].ambient.push_back(stof(word));
+			surfaces[surfaces.size() - 1].ambient.g = stof(word);
 			rayFile >> word;
-			surfaces[surfaceCount].ambient.push_back(stof(word));
+			surfaces[surfaces.size() - 1].ambient.b = stof(word);
 
 		// Get surface diffusion values
 		} else if(word == "diffuse"){
 
 			rayFile >> word;
-			surfaces[surfaceCount].diffuse.push_back(stof(word));
+			surfaces[surfaces.size() - 1].diffuse.r = stof(word);
 			rayFile >> word;
-			surfaces[surfaceCount].diffuse.push_back(stof(word));
+			surfaces[surfaces.size() - 1].diffuse.g = stof(word);
 			rayFile >> word;
-			surfaces[surfaceCount].diffuse.push_back(stof(word));
+			surfaces[surfaces.size() - 1].diffuse.b = stof(word);
 
 		// Get surface specular values
 		} else if(word == "specular"){
 
 			rayFile >> word;
-			surfaces[surfaceCount].specular.push_back(stof(word));
+			surfaces[surfaces.size() - 1].specular.r = stof(word);
 			rayFile >> word;
-			surfaces[surfaceCount].specular.push_back(stof(word));
+			surfaces[surfaces.size() - 1].specular.g = stof(word);
 			rayFile >> word;
-			surfaces[surfaceCount].specular.push_back(stof(word));
+			surfaces[surfaces.size() - 1].specular.b = stof(word);
 
 		// Get surface specular power
 		} else if(word == "specpow"){
 
 			rayFile >> word;
-			surfaces[surfaceCount].specpow = stof(word);
+			surfaces[surfaces.size() - 1].specpow = stof(word);
 
 		// Get surface reflection value
 		} else if(word == "reflect"){
 
 			rayFile >> word;
-			surfaces[surfaceCount].reflect = stof(word);
+			surfaces[surfaces.size() - 1].reflect = stof(word);
 
 		// Get spheres
 		} else if(word == "sphere"){
@@ -465,23 +512,21 @@ int main(){
 
 		for(int x = 0; x < width; x++){
 
-			// Color is the background color if there is no intersection
-			vector<float> color = background;
-
 			// Calculate pixel location in world space
 			float us = left + (right - left) * (x + .5) / width;
 			float vs = top + (bottom - top) * (y + .5) / height;
 			Vector3D s(eyep + u.normalization() * us + v.normalization() * vs - w.normalization() * d.length());
 
 			// Calculate ray from pixel location
-			Ray ray(eyep, s - eyep);
+			Ray ray(eyep, (s - eyep));
 
-			color = ray.trace(background, lights, surfaces, spheres);
+			// Get pixel color
+			Color color = trace(ray, background, background, lights, surfaces, spheres, 0, maxdepth, cutoff, 1);
 
 			// Calculate pixel color values
-			pixels[y * width * 3 + x * 3 + 0] = (color.at(0) < 0) ? 0 : (color.at(0) > 1) ? 255 : (unsigned char)(color.at(0) * 255);
-			pixels[y * width * 3 + x * 3 + 1] = (color.at(1) < 0) ? 0 : (color.at(1) > 1) ? 255 : (unsigned char)(color.at(1) * 255);
-			pixels[y * width * 3 + x * 3 + 2] = (color.at(2) < 0) ? 0 : (color.at(2) > 1) ? 255 : (unsigned char)(color.at(2) * 255);
+			pixels[y * width * 3 + x * 3 + 0] = (color.r < 0) ? 0 : (color.r > 1) ? 255 : (unsigned char)(color.r * 255);
+			pixels[y * width * 3 + x * 3 + 1] = (color.g < 0) ? 0 : (color.g > 1) ? 255 : (unsigned char)(color.g * 255);
+			pixels[y * width * 3 + x * 3 + 2] = (color.b < 0) ? 0 : (color.b > 1) ? 255 : (unsigned char)(color.b * 255);
 
 		}
 
