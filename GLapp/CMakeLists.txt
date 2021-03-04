@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8...3.19)
 project(GLapp)
 set(TARGET GLapp)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TARGET})
 
 # set C++ version to use
 set(CMAKE_CXX_STANDARD 11)
