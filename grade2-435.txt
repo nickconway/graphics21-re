@@ -1,0 +1,20 @@
+CMSC 435 Assignment 2 rubric
+============================
+
+30/30 - Basics
+    5/ 5 - Readme
+    10/10 - All source files submitted, no build files
+    5/ 5 - Multiple incremental checkins during development
+    10/10 - Compiles without error
+36/40 - Direct Lighting
+    5/ 5 - Light intensity & color clamping
+    5/ 5 - Ambient
+    10/10 - Diffuse
+    6/10 - Blinn-Phong (Line 300, H = (-ray.d+L).normalize(). H!=(-ray.d+R).normalize(). Move it into the light loop. 
+    10/10 - Shadow Rays
+30/30 - Reflection
+    10/10 - Correct reflection direction
+    10/10 - Recursive ray
+    10/10 - Stopping conditions (bounces & total contribution)
+----
+96/100 Total
