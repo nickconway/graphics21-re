@@ -40,6 +40,7 @@ bld/
 [Ll]og/
 [Bb]uild/
 
+.vs
 .vscode
 
 /trace/test

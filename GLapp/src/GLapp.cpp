@@ -6,6 +6,7 @@
 #include "GLapp.hpp"
 #include "Sphere.hpp"
 #include "Plane.hpp"
+#include "Island.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
@@ -237,7 +238,9 @@ int main(int argc, char *argv[])
     GLapp app;
 
     // add some objects to draw
+    app.objects.push_back(new Plane(vec3(50000.f, 50000.f, 100.f), "water.ppm"));
     app.objects.push_back(new Plane(vec3(500.f, 500.f, 100.f), "rocks-color.ppm"));
+    app.objects.push_back(new Island(0, vec3(500.f, 500.f, 100.f), "rocks-color.ppm"));
     app.objects.push_back(new Sphere(50, 25, vec3(50.f,50.f,50.f), "paving-color.ppm"));
 
     // set up initial viewport
