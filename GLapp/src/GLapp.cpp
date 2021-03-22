@@ -18,8 +18,12 @@
 #ifndef F_PI
 #define F_PI 3.1415926f
 #endif
+#include <iostream>
 
 using namespace glm;  // avoid glm:: for all glm types and functions
+
+int subdivisions = 0;
+Island* island;
 
 ///////
 // GLFW callbacks must use extern "C"
@@ -66,6 +70,7 @@ extern "C" {
     // called on any keypress
     void keyPress(GLFWwindow *win, int key, int scancode, int action, int mods) {
         GLapp *app = (GLapp*)glfwGetWindowUserPointer(win);
+        int level = island->level;
 
         if (action == GLFW_PRESS) {
             switch (key) {
@@ -99,6 +104,25 @@ extern "C" {
             case 'L':                   // toggle lines or solid
                 app->wireframe = !app->wireframe;
                 glPolygonMode(GL_FRONT_AND_BACK, app->wireframe ? GL_LINE : GL_FILL);
+                return;
+
+            case '=':
+                if (mods == 1) {
+                    island->addSubdivision();
+                }
+                return;
+
+            case '-':
+                if (island->level != 0) {
+                    island->removeSubdivision();
+                }
+                return;
+
+            case 'N':
+                island = new Island(vec3(500.f, 500.f, 100.f), "rocks-color.ppm");
+                for (int i = 0; i < level; i++) {
+                    island->addSubdivision();
+                }
                 return;
 
             case GLFW_KEY_ESCAPE:                    // Escape: exit
@@ -239,8 +263,10 @@ int main(int argc, char *argv[])
 
     // add some objects to draw
     app.objects.push_back(new Plane(vec3(50000.f, 50000.f, 100.f), "water.ppm"));
-    app.objects.push_back(new Plane(vec3(500.f, 500.f, 100.f), "rocks-color.ppm"));
-    app.objects.push_back(new Island(0, vec3(500.f, 500.f, 100.f), "rocks-color.ppm"));
+    //app.objects.push_back(new Plane(vec3(500.f, 500.f, 100.f), "rocks-color.ppm"));
+
+    island = new Island(vec3(500.f, 500.f, 100.f), "rocks-color.ppm");
+    app.objects.push_back(island);
     app.objects.push_back(new Sphere(50, 25, vec3(50.f,50.f,50.f), "paving-color.ppm"));
 
     // set up initial viewport
