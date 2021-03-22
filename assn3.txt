@@ -8,6 +8,6 @@ Nothing (again, I think)
 
 External Resources:
 
-For c++ file i/o: https://www.geeksforgeeks.org/file-handling-c-classes/
+For random number genration: https://stackoverflow.com/questions/4310277/producing-random-float-from-negative-to-positive-range/4310296
 Fundamentals of Computer Graphics, 4th Edition
 Class Recordings
