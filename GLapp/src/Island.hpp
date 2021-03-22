@@ -26,4 +26,5 @@ public:
 
     void addSubdivision();
     void removeSubdivision();
+    void reset();
 };

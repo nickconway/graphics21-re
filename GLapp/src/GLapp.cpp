@@ -119,7 +119,7 @@ extern "C" {
                 return;
 
             case 'N':
-                island = new Island(vec3(500.f, 500.f, 100.f), "rocks-color.ppm");
+                island->reset();
                 for (int i = 0; i < level; i++) {
                     island->addSubdivision();
                 }
