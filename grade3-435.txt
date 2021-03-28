@@ -1,0 +1,27 @@
+CMSC 435 Assignment 3 rubric
+============================
+
+30/30 - Basics
+    5/ 5 - Readme
+    10/10 - All source files submitted, no build files
+    5/ 5 - Multiple incremental checkins during development
+    10/10 - Compiles without error
+15/15 - Sea
+    5/ 5 - Big
+    5/ 5 - At sea level
+    5/ 5 - Blue
+15/15 - Island initiator
+    5/ 5 - Texture coordinates
+    5/ 5 - Positions
+    5/ 5 - Indices
+40/40 - Island levels
+    5/ 5 - +/- keys change levels
+    5/ 5 - N key changes seed
+    5/ 5 - Replace 1 triangle with 4
+    5/ 5 - Create new vertices at position & texture midpoint   
+    5/ 5 - Scale random vertical offset, w/ boundary clamped to sea level
+    5/ 5 - Placed vertices remain consistent between levels
+    5/ 5 - Share vertices
+    5/ 5 - Compute normals
+---- (One `late free` day claimed)
+100/100 Total
