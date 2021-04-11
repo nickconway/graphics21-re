@@ -7,6 +7,7 @@
 #include "Sphere.hpp"
 #include "Plane.hpp"
 #include "Island.hpp"
+#include "Player.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
@@ -24,6 +25,7 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 
 int subdivisions = 0;
 Island* island;
+Player* player;
 
 ///////
 // GLFW callbacks must use extern "C"
@@ -74,20 +76,20 @@ extern "C" {
 
         if (action == GLFW_PRESS) {
             switch (key) {
-            case 'A':                   // rotate left
-                app->panRate = -F_PI;  // half a rotation/sec
+            case 'A':                   // move left
+                player->xRate = -1;
                 return;
 
             case 'D':                   // rotate right
-                app->panRate = F_PI;   // half a rotation/sec
+                player->xRate = 1;  
                 return;
 
             case 'W':                   // rotate up
-                app->tiltRate = 0.5f * F_PI; // 1/4 rotation/sec
+                player->yRate = 1;
                 return;
 
             case 'S':                   // rotate down
-                app->tiltRate = -0.5f * F_PI; // 1/4 rotation/sec
+                player->yRate = -1;
                 return;
 
             case 'R':                   // reload shaders
@@ -133,11 +135,11 @@ extern "C" {
 
         if (action == GLFW_RELEASE) {
             switch (key) {
-            case 'A': case 'D':         // stop panning
-                app->panRate = 0;
+            case 'A': case 'D':
+                player->xRate = 0;
                 return;
-            case 'W': case 'S':         // stop tilting
-                app->tiltRate = 0;
+            case 'W': case 'S':
+                player->yRate = 0;
                 return;
             }
         }
@@ -263,11 +265,12 @@ int main(int argc, char *argv[])
 
     // add some objects to draw
     app.objects.push_back(new Plane(vec3(50000.f, 50000.f, 100.f), "water.ppm"));
-    //app.objects.push_back(new Plane(vec3(500.f, 500.f, 100.f), "rocks-color.ppm"));
 
     island = new Island(vec3(500.f, 500.f, 100.f), "rocks-color.ppm");
     app.objects.push_back(island);
-    app.objects.push_back(new Sphere(50, 25, vec3(50.f,50.f,50.f), "paving-color.ppm"));
+    player = new Player(50, 25, vec3(25.f, 25.f, 25.f), "paving-color.ppm");
+    app.objects.push_back(player);
+    app.objects.push_back(new Sphere(50, 25, vec3(50.f, 50.f, 50.f), "paving-color.ppm"));
 
     // set up initial viewport
     reshape(app.win, app.width, app.height);
