@@ -77,19 +77,19 @@ extern "C" {
         if (action == GLFW_PRESS) {
             switch (key) {
             case 'A':                   // move left
-                player->xRate = -1;
+                player->strafeSpeed = -1;
                 return;
 
-            case 'D':                   // rotate right
-                player->xRate = 1;  
+            case 'D':                   // move right
+                player->strafeSpeed = 1;  
                 return;
 
-            case 'W':                   // rotate up
-                player->yRate = 1;
+            case 'W':                   // move up
+                player->forwardSpeed = 1;
                 return;
 
-            case 'S':                   // rotate down
-                player->yRate = -1;
+            case 'S':                   // move down
+                player->forwardSpeed = -1;
                 return;
 
             case 'R':                   // reload shaders
@@ -136,10 +136,10 @@ extern "C" {
         if (action == GLFW_RELEASE) {
             switch (key) {
             case 'A': case 'D':
-                player->xRate = 0;
+                player->strafeSpeed = 0;
                 return;
             case 'W': case 'S':
-                player->yRate = 0;
+                player->forwardSpeed = 0;
                 return;
             }
         }
@@ -268,9 +268,9 @@ int main(int argc, char *argv[])
 
     island = new Island(vec3(500.f, 500.f, 100.f), "rocks-color.ppm");
     app.objects.push_back(island);
-    player = new Player(50, 25, vec3(25.f, 25.f, 25.f), "paving-color.ppm");
+    player = new Player(50, 25, vec3(10.f, 10.f, 10.f), "paving-color.ppm", island);
     app.objects.push_back(player);
-    app.objects.push_back(new Sphere(50, 25, vec3(50.f, 50.f, 50.f), "paving-color.ppm"));
+    //app.objects.push_back(new Sphere(50, 25, vec3(50.f, 50.f, 50.f), "paving-color.ppm"));
 
     // set up initial viewport
     reshape(app.win, app.width, app.height);

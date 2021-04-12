@@ -6,7 +6,7 @@
 #include <vector>
 
 class Object {
-protected:
+public:
     // uniform buffer data about the object position
     // must be plain old data, matching layout in shaders
     // rearrange or pad as necessary for vec4 alignment
@@ -33,7 +33,6 @@ protected:
     unsigned int shaderID;      // ID for shader program
     std::vector<ShaderInfo> shaderParts;  // vertex & fragment shader info
 
-public:
     // base object constructor: create buffers and textures
     Object(const char *texturePPM);
 

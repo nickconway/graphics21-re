@@ -2,18 +2,20 @@
 #pragma once
 
 #include "Object.hpp"
+#include "Island.hpp"
 
 // player object
 class Player : public Object {
 public:
 
-    int xPos, yPos, zPos;
-    int xRate, yRate, zRate;
+    float xPos, yPos, zPos;
+    float forwardSpeed, strafeSpeed;
+    Island* island;
 
     // create sphere given latitude and longitude sizes and color texture
-    Player(int width, int height, glm::vec3 size, const char* texturePPM);
+    Player(int width, int height, glm::vec3 size, const char* texturePPM, Island* i);
 
-    void updatePos(GLapp* app);
+    void move(GLapp* app);
 
     // draw this sphere object
     virtual void draw(GLapp* app, double now) override;

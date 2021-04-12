@@ -3,6 +3,7 @@
 #include "Player.hpp"
 #include "GLapp.hpp"
 #include <math.h>
+#include "Island.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
@@ -20,9 +21,10 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 int zOffset = 10;
 
 // load the sphere data
-Player::Player(int w, int h, vec3 size, const char* texturePPM) : Object(texturePPM){
+Player::Player(int w, int h, vec3 size, const char* texturePPM, Island* i) : Object(texturePPM){
 
     xPos = yPos = zPos = 0;
+    island = i;
 
     // build vertex, normal and texture coordinate arrays
     // * x & y are longitude and latitude grid positions
@@ -75,14 +77,34 @@ Player::Player(int w, int h, vec3 size, const char* texturePPM) : Object(texture
     updateShaders();
 }
 
-void Player::updatePos(GLapp* app) {
+void barycentric(std::vector<vec3> triangle) {
 
-    float r = app->pan / F_PI / 2;
-    std::cout << F_PI << " " << app->pan << " " << r << std::endl;
+}
 
-    xPos += xRate;
-    yPos += yRate * (2 - abs(r));
-    zPos += zRate;
+void Player::move(GLapp* app) {
+
+    vec2 speed(strafeSpeed, forwardSpeed);
+    float magnitude = sqrt(speed.x * speed.x + speed.y * speed.y);
+
+    float xWSMultiplier = sin(app->pan);
+    float yWSMultiplier = cos(app->pan);
+
+    float xADMultiplier = cos(-app->pan);
+    float yADMultiplier = sin(-app->pan);
+
+    float xComponent = (magnitude * forwardSpeed * xWSMultiplier) + (magnitude * strafeSpeed * xADMultiplier);
+    float yComponent = (magnitude * forwardSpeed * yWSMultiplier) + (magnitude * strafeSpeed * yADMultiplier);
+
+    xPos += xComponent;
+    yPos += yComponent;
+
+    int alpha = 0, beta = 0, gamma = 0;
+    // Go through each triangle
+    for (int i = 0; i < island->indices.size(); i += 3) {
+
+    }
+
+    zPos = alpha + beta + gamma + zOffset;
 
 }
 
@@ -92,10 +114,10 @@ void Player::updatePos(GLapp* app) {
 void Player::draw(GLapp* app, double now)
 {
 
-    updatePos(app);
+    move(app);
 
     // update model position
-    object.WorldFromModel = translate(mat4(1), vec3(xPos, yPos, zPos));
+    object.WorldFromModel = translate(mat4(1), vec3(xPos, yPos, 100));
     object.ModelFromWorld = inverse(object.WorldFromModel);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, bufferIDs[OBJECT_UNIFORM_BUFFER]);
