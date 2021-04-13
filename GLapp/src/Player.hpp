@@ -17,6 +17,8 @@ public:
 
     void move(GLapp* app);
 
+    std::vector<float> barycentric(std::vector<glm::vec3> triangle);
+
     // draw this sphere object
     virtual void draw(GLapp* app, double now) override;
 };
