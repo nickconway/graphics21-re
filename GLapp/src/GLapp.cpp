@@ -233,7 +233,7 @@ void GLapp::sceneUpdate(double dTime)
         * translate(mat4(1), vec3(0, 0, -distance))
         * rotate(mat4(1), tilt, vec3(1, 0, 0))
         * rotate(mat4(1), pan, vec3(0, 0, 1))
-        * translate(mat4(1), vec3(-player->xPos, -player->yPos, -player->zPos));
+        * translate(mat4(1), vec3(-player->xPos - player->strafeSpeed, -player->yPos - player->forwardSpeed, -player->zPos));
     scene.WorldFromProj = inverse(scene.ProjFromWorld);
 
     glBindBuffer(GL_UNIFORM_BUFFER, sceneUniformsID);
@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
     // add some objects to draw
     app.objects.push_back(new Plane(vec3(50000.f, 50000.f, 100.f), "water.ppm"));
 
-    island = new Island(vec3(500.f, 500.f, 100.f), "rocks-color.ppm");
+    island = new Island(vec3(500.f, 500.f, 50.f), "rocks-color.ppm");
     app.objects.push_back(island);
     player = new Player(50, 25, vec3(1.f, 1.f, 1.f), "paving-color.ppm", island);
     app.objects.push_back(player);
