@@ -135,9 +135,11 @@ extern "C" {
 
         if (action == GLFW_RELEASE) {
             switch (key) {
+            // stop strafing
             case 'A': case 'D':
                 player->strafeSpeed = 0;
                 return;
+            // stop moving
             case 'W': case 'S':
                 player->forwardSpeed = 0;
                 return;
@@ -151,7 +153,7 @@ GLapp::GLapp()
 {
     // member data initialization
     width = 843; height = 480;                  // window size
-    distance = 100.f; pan = 0.f; tilt = -1.4f;  // view
+    distance = 20.f; pan = 0.f; tilt = -1.4f;  // view
     panRate = tiltRate = 0.f;                   // keyboard view control
     button = false; mouseX = mouseY = 0.f;      // mouse view controls
     wireframe = false;                          // solid drawing
@@ -269,7 +271,7 @@ int main(int argc, char *argv[])
 
     island = new Island(vec3(500.f, 500.f, 100.f), "rocks-color.ppm");
     app.objects.push_back(island);
-    player = new Player(50, 25, vec3(10.f, 10.f, 10.f), "paving-color.ppm", island);
+    player = new Player(50, 25, vec3(1.f, 1.f, 1.f), "paving-color.ppm", island);
     app.objects.push_back(player);
     //app.objects.push_back(new Sphere(50, 25, vec3(50.f, 50.f, 50.f), "paving-color.ppm"));
 

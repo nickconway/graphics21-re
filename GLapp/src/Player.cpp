@@ -1,4 +1,4 @@
-// draw a simple sphere model
+// draw a player model
 
 #include "Player.hpp"
 #include "GLapp.hpp"
@@ -18,29 +18,7 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 #define F_PI 3.1415926f
 #endif
 
-float zOffset = 30;
-
-// Calculate vector length
-float length(vec3 v) {
-
-    return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
-
-}
-
-// Calculation normalization of vector
-vec3 normalization(vec3 v) {
-
-    return vec3(v.x / length(v), v.y / length(v), v.z / length(v));
-
-}
-
-// Calculate dot product of two vectors
-float dot(vec3 v1, vec3 v2) {
-
-    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-
-}
-
+float zOffset = 5;
 
 // load the sphere data
 Player::Player(int w, int h, vec3 size, const char* texturePPM, Island* i) : Object(texturePPM){
@@ -99,19 +77,20 @@ Player::Player(int w, int h, vec3 size, const char* texturePPM, Island* i) : Obj
     updateShaders();
 }
 
+// Get barycentric coordinates for a triangle from the player position
 std::vector<float> Player::barycentric(std::vector<vec3> triangle) {
 
     float alpha, beta, gamma;
-    vec3 v0 = triangle[0];
-    vec3 v1 = triangle[1];
-    vec3 v2 = triangle[2];
-    vec3 p(xPos, yPos, zPos);
+    vec3 v0(triangle[0].x, triangle[0].y, 0);
+    vec3 v1(triangle[1].x, triangle[1].y, 0);
+    vec3 v2(triangle[2].x, triangle[2].y, 0);
+    vec3 p(xPos, yPos, 0);
 
     vec3 n = cross((v2 - v1), (v0 - v1));
 
     vec3 nAlpha = cross((v2 - v1), (p - v1));
     vec3 nBeta = cross((v1 - v0), (p - v0));
-    vec3 nGamma = cross((v2 - v0), (p - v0));
+    vec3 nGamma = cross((v0 - v2), (p - v2));
 
     alpha = dot(n, nAlpha) / dot(n, n);
     beta = dot(n, nBeta) / dot(n, n);
@@ -121,10 +100,8 @@ std::vector<float> Player::barycentric(std::vector<vec3> triangle) {
 
 }
 
+// Move the player
 void Player::move(GLapp* app) {
-
-    vec2 speed(strafeSpeed, forwardSpeed);
-    float magnitude = sqrt(speed.x * speed.x + speed.y * speed.y);
 
     float xWSMultiplier = sin(app->pan);
     float yWSMultiplier = cos(app->pan);
@@ -132,14 +109,15 @@ void Player::move(GLapp* app) {
     float xADMultiplier = cos(-app->pan);
     float yADMultiplier = sin(-app->pan);
 
-    float xComponent = (magnitude * forwardSpeed * xWSMultiplier) + (magnitude * strafeSpeed * xADMultiplier);
-    float yComponent = (magnitude * forwardSpeed * yWSMultiplier) + (magnitude * strafeSpeed * yADMultiplier);
+    float xComponent = (forwardSpeed * xWSMultiplier) + (strafeSpeed * xADMultiplier);
+    float yComponent = (forwardSpeed * yWSMultiplier) + (strafeSpeed * yADMultiplier);
 
     xPos += xComponent;
     yPos += yComponent;
     zPos = zOffset;
 
     float alpha = 0, beta = 0, gamma = 0;
+
     // Go through each triangle
     for (int i = 0; i < island->indices.size(); i += 3) {
         std::vector<vec3> triangle = { island->vert[island->indices[i]], island->vert[island->indices[i + 1]], island->vert[island->indices[i + 2]] };
@@ -150,12 +128,13 @@ void Player::move(GLapp* app) {
         beta = baryCoords[1];
         gamma = baryCoords[2];
 
-        if (alpha >= 0 && alpha <= 1 && beta >= 0 && beta <= 1 && gamma >= 0 && gamma <= 1 && alpha + beta + gamma == 1) {
-            zPos += triangle[0].z * alpha + triangle[1].z * beta + triangle[2].z * gamma;
-            break;
+        // Only update when the coordinates are valid
+        if (alpha >= 0 && alpha <= 1 && beta >= 0 && beta <= 1 && gamma >= 0 && gamma <= 1) {
+            zPos = zOffset + triangle[0].z * alpha + triangle[1].z * beta + triangle[2].z * gamma;
         }
     }
 
+    // Keep from going below sea level
     zPos = max(zPos, zOffset);
 
 }
