@@ -89,8 +89,8 @@ std::vector<float> Player::barycentric(std::vector<vec3> triangle) {
     vec3 n = cross((v2 - v1), (v0 - v1));
 
     vec3 nAlpha = cross((v2 - v1), (p - v1));
-    vec3 nBeta = cross((v1 - v0), (p - v0));
-    vec3 nGamma = cross((v0 - v2), (p - v2));
+    vec3 nBeta = cross((v0 - v2), (p - v2));
+    vec3 nGamma = cross((v1 - v0), (p - v0));
 
     alpha = dot(n, nAlpha) / dot(n, n);
     beta = dot(n, nBeta) / dot(n, n);

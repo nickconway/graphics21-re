@@ -228,12 +228,13 @@ void GLapp::sceneUpdate(double dTime)
     pan += float(panRate * dTime);
     tilt += float(tiltRate * dTime);
 
+    // Get the camera location
     scene.ProjFromWorld =
         perspective(F_PI / 4.f, (float)width / height, 1.f, 10000.f)
         * translate(mat4(1), vec3(0, 0, -distance))
         * rotate(mat4(1), tilt, vec3(1, 0, 0))
         * rotate(mat4(1), pan, vec3(0, 0, 1))
-        * translate(mat4(1), vec3(-player->xPos - player->strafeSpeed, -player->yPos - player->forwardSpeed, -player->zPos));
+        * translate(mat4(1), vec3(-player->xPos, -player->yPos, -player->zPos));
     scene.WorldFromProj = inverse(scene.ProjFromWorld);
 
     glBindBuffer(GL_UNIFORM_BUFFER, sceneUniformsID);

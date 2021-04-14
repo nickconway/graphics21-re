@@ -1,0 +1,14 @@
+What does work:
+
+Everything (I think?)
+
+What doesn't work:
+
+Nothing (again, I think)
+
+External Resources:
+
+Fundamentals of Computer Graphics, 4th Edition
+Class Recordings
+
+NOTE: moving the camera requires holding down the left mouse button
