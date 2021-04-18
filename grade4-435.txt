@@ -1,0 +1,32 @@
+CMSC 435 Assignment 4 Rubric
+============================
+
+29/30 - Basics
+    10/10 - assn4.txt submitted and informative
+    10/10 - Multiple incremental checkins during development
+    5/ 5 - All source files submitted, no build files, no external libraries
+    5/ 5 - Compiles without error  
+10/10 - Third Person View
+    5/ 5 - View follows character (extra translate)
+    5/ 5 - View offset behind character (existing translate distance)
+30/30 - Motion
+    10/10 - Compute forward/right directions (from pan angle or view matrix)
+    10/10 - Motion forward on 'w' & backward on 's'
+    10/10 - Strafe left on 'a' & right on 'd'
+30/30 - View Elevation
+    10/10 - Barycentric coordinate computation
+    10/10 - Find current triangle
+    10/10 - Position above surface
+
+/25 - Extra Credit
+    / 5 - Find viewpoint position
+    / 5 - Detect view below island
+    / 5 - Detect view below sea
+    / 5 - Find new tilt angle
+    / 5 - March along view distance
+------
+100/100
+
+Note: initialize forwardSpeed, strafeSpeed to zero. The player pos flies to an unkown location
+if not initialized to zero with the default setting in VS2019. It might be ok for some compiler, 
+they will add the code to initialize it automatically, however it can be arbitrary value.
