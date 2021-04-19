@@ -1,7 +1,7 @@
 CMSC 435 Assignment 4 Rubric
 ============================
 
-29/30 - Basics
+30/30 - Basics
     10/10 - assn4.txt submitted and informative
     10/10 - Multiple incremental checkins during development
     5/ 5 - All source files submitted, no build files, no external libraries
