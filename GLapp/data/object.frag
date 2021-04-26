@@ -10,6 +10,8 @@ uniform SceneData {             // like a class name
 
 // shader settings
 uniform sampler2D ColorTexture;
+uniform sampler2D NormalTexture;
+uniform sampler2D PropsTexture;
 
 // input from vertex shader
 in vec2 texcoord;
@@ -20,13 +22,34 @@ in vec4 position;
 out vec4 fragColor;
 
 void main() {
+
+    // solid color or from texture
+    vec3 color = vec3(.5);
+    if(textureSize(ColorTexture, 0) != ivec2(1, 1))
+        color = texture(ColorTexture, 4. * texcoord).rgb;
+
+    float ambient = LightDir.a * texture(PropsTexture, texcoord).b;
+
     vec3 N = normalize(normal);             // surface normal
     vec3 L = normalize(LightDir.xyz);       // light direction
-    float I = max(0., dot(N,L));            // diffuse lighting
-    I = min(1., I + LightDir.a);            // add in ambient
+    float diffuse = max(0., dot(N,L));      // diffuse lighting
+    float I = min(1., diffuse + LightDir.a);   // add in ambient
 
-    // color from texture and diffuse
-    vec3 color = I * texture(ColorTexture, texcoord).rgb;
+    vec4 eyeProj = vec4(0,0,-1,0);
+    vec4 eyeWorld = WorldFromProj * eyeProj;
+    vec3 V = eyeWorld.xyz/eyeWorld.w - position.xyz/position.w;
+    V = normalize(V);
+    vec3 H = normalize(V + L);
+
+    float gloss = texture(PropsTexture, texcoord).r;
+    float fresnel = .04 + (1. - .04) * pow(1. - dot(N, V), 5.);
+    float specPower = pow(2, 12 * gloss);
+    float specular = pow(dot(N,H), specPower) * (specPower + 1) / 2;
+    
+    color = mix(vec3(diffuse + ambient), vec3(specular), fresnel);
+
+    // color from texture
+    color += I * texture(ColorTexture, texcoord).rgb;
 
     // final color
     fragColor = vec4(color, 1);

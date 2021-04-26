@@ -15,8 +15,8 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 #endif
 
 // load the sphere data
-Sphere::Sphere(int w, int h, vec3 size, const char *texturePPM) :
-    Object(texturePPM)
+Sphere::Sphere(int w, int h, vec3 size, std::vector<const char*> textures) :
+    Object(textures)
 {
     // build vertex, normal and texture coordinate arrays
     // * x & y are longitude and latitude grid positions

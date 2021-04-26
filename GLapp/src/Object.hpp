@@ -22,7 +22,7 @@ public:
     std::vector<unsigned int> indices;  //   3 vertex indices per triangle
 
     // GL texture ID(s), array for extensibility to more textures
-    enum {COLOR_TEXTURE, NUM_TEXTURES};
+    enum {COLOR_TEXTURE, NORMAL_TEXTURE, PROPS_TEXTURE, NUM_TEXTURES};
     unsigned int textureIDs[NUM_TEXTURES];
 
     // GL buffer object IDs
@@ -34,7 +34,7 @@ public:
     std::vector<ShaderInfo> shaderParts;  // vertex & fragment shader info
 
     // base object constructor: create buffers and textures
-    Object(const char *texturePPM);
+    Object(std::vector<const char*> textures);
 
     // virtual destructor to delete any child class data
     virtual ~Object();

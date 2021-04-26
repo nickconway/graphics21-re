@@ -13,7 +13,7 @@ public:
     Island* island;
 
     // create sphere given latitude and longitude sizes and color texture
-    Player(int width, int height, glm::vec3 size, const char* texturePPM, Island* i);
+    Player(int width, int height, glm::vec3 size, std::vector<const char*> textures, Island* i);
 
     void move(GLapp* app);
 

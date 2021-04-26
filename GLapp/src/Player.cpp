@@ -21,10 +21,12 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 float zOffset = 5;
 
 // load the sphere data
-Player::Player(int w, int h, vec3 size, const char* texturePPM, Island* i) : Object(texturePPM){
+Player::Player(int w, int h, vec3 size, std::vector<const char*> textures, Island* i) : Object(textures){
 
     xPos = yPos = zPos = 0;
     island = i;
+    forwardSpeed = 0;
+    strafeSpeed = 0;
 
     // build vertex, normal and texture coordinate arrays
     // * x & y are longitude and latitude grid positions

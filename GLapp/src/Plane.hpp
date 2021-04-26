@@ -7,5 +7,5 @@
 class Plane : public Object {
 public:
     // create plane from -size/2 to size/2
-    Plane(glm::vec3 size, const char *texturePPM);
+    Plane(glm::vec3 size, std::vector<const char*> textures);
 };

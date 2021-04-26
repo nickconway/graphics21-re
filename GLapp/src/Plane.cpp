@@ -9,8 +9,8 @@
 using namespace glm;  // avoid glm:: for all glm types and functions
 
 // load the sphere data
-Plane::Plane(vec3 size, const char *texturePPM) :
-    Object(texturePPM)
+Plane::Plane(vec3 size, std::vector<const char*> textures) :
+    Object(textures)
 {
     // build texture coordinate, normal, and vertex arrays
     uv = {vec2(0.f,0.f), vec2(1.f,0.f), vec2(0.f,1.f), vec2(1.f,1.f)};

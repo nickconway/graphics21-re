@@ -76,6 +76,9 @@ extern "C" {
 
         if (action == GLFW_PRESS) {
             switch (key) {
+            case '1':
+                glDisable(GL_TEXTURE0);
+                return;
             case 'A':                   // move left
                 player->strafeSpeed = -1;
                 return;
@@ -211,7 +214,7 @@ GLapp::GLapp()
     glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneData), 0, GL_STREAM_DRAW);
 
     // initialize scene data
-    scene.LightDir = vec4(-1,-2,2,0);
+    scene.LightDir = vec4(-1,-2,2,.6);
 }
 
 ///////
@@ -268,11 +271,11 @@ int main(int argc, char *argv[])
     GLapp app;
 
     // add some objects to draw
-    app.objects.push_back(new Plane(vec3(50000.f, 50000.f, 100.f), "water.ppm"));
+    app.objects.push_back(new Plane(vec3(50000.f, 50000.f, 100.f), { "water.ppm" }));
 
-    island = new Island(vec3(500.f, 500.f, 50.f), "rocks-color.ppm");
+    island = new Island(vec3(500.f, 500.f, 100.f), { "rocks-color.ppm" });
     app.objects.push_back(island);
-    player = new Player(50, 25, vec3(1.f, 1.f, 1.f), "paving-color.ppm", island);
+    player = new Player(50, 25, vec3(1.f, 1.f, 1.f), { "paving-color.ppm" }, island);
     app.objects.push_back(player);
     //app.objects.push_back(new Sphere(50, 25, vec3(50.f, 50.f, 50.f), "paving-color.ppm"));
 

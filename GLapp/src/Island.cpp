@@ -203,8 +203,8 @@ std::vector<vec3> Island::calculateNorms() {
 }
 
 // load the island data
-Island::Island(vec3 size, const char *texturePPM) :
-    Object(texturePPM)
+Island::Island(vec3 size, std::vector<const char*> textures) :
+    Object(textures)
 {
 
     level = 0;

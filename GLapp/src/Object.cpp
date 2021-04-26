@@ -19,7 +19,7 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 #pragma warning( disable: 4996 )
 #endif
 
-Object::Object(const char *texturePPM)
+Object::Object(std::vector<const char*> textures)
 {
     // create buffer objects to be used later
     glGenTextures(NUM_TEXTURES, textureIDs);
@@ -27,7 +27,9 @@ Object::Object(const char *texturePPM)
     glGenVertexArrays(1, &varrayID);
 
     // load color image into a named texture
-    loadPPM(texturePPM, textureIDs[COLOR_TEXTURE]);
+    for (int i = 0; i < textures.size(); i++) {
+        loadPPM(textures[i], textureIDs[i]);
+    }
 
     // default to position at origin
     object = {mat4(1), mat4(1)};
@@ -64,6 +66,8 @@ void Object::updateShaders()
 
     // Map shader name for texture. Index# should match GL_TEXTURE# used in draw
     glUniform1i(glGetUniformLocation(shaderID, "ColorTexture"), 0);
+    glUniform1i(glGetUniformLocation(shaderID, "NormalTexture"), 1);
+    glUniform1i(glGetUniformLocation(shaderID, "PropsTexture"), 2);
 
     // bind attribute arrays
     glBindVertexArray(varrayID);
@@ -142,6 +146,14 @@ void Object::draw(GLapp* app, double now)
     // bind color texture to active texture #0
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIDs[COLOR_TEXTURE]);
+
+    // bind normal texture to active texture #1
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[NORMAL_TEXTURE]);
+
+    // bind props texture to active texture #2
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[PROPS_TEXTURE]);
 
     // bind uniform buffers to the appropriate uniform block numbers
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, app->sceneUniformsID);

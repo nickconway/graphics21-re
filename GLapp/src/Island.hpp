@@ -22,7 +22,7 @@ public:
     std::vector<std::vector<unsigned int>> levelIndices;
 
     // create plane from -size/2 to size/2
-    Island(glm::vec3 size, const char *texturePPM);
+    Island(glm::vec3 size, std::vector<const char*> textures);
 
     void addSubdivision();
     void removeSubdivision();
