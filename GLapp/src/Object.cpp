@@ -152,7 +152,7 @@ void Object::draw(GLapp* app, double now)
     glBindTexture(GL_TEXTURE_2D, textureIDs[NORMAL_TEXTURE]);
 
     // bind props texture to active texture #2
-    glActiveTexture(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, textureIDs[PROPS_TEXTURE]);
 
     // bind uniform buffers to the appropriate uniform block numbers

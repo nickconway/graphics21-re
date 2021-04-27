@@ -273,9 +273,9 @@ int main(int argc, char *argv[])
     // add some objects to draw
     app.objects.push_back(new Plane(vec3(50000.f, 50000.f, 100.f), { "water.ppm" }));
 
-    island = new Island(vec3(500.f, 500.f, 100.f), { "rocks-color.ppm" });
+    island = new Island(vec3(500.f, 500.f, 100.f), { "rocks-color.ppm", "rocks-normal.ppm", "rocks-props.ppm"});
     app.objects.push_back(island);
-    player = new Player(50, 25, vec3(1.f, 1.f, 1.f), { "paving-color.ppm" }, island);
+    player = new Player(50, 25, vec3(1.f, 1.f, 1.f), { "paving-color.ppm", "paving-normal.ppm", "paving-props.ppm" }, island);
     app.objects.push_back(player);
     //app.objects.push_back(new Sphere(50, 25, vec3(50.f, 50.f, 50.f), "paving-color.ppm"));
 
