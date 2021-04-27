@@ -7,6 +7,7 @@
 #include "Vec3.hpp"
 
 // classes we only use by pointer or reference
+class Appearance;
 class World;
 class Ray;
 
@@ -19,10 +20,11 @@ class Sphere : public Object {
     float Rsquared;
 
 public: // constructors
-    Sphere(const Vec3 &_color, const Vec3 &_center, float _radius);
+    Sphere(const Surface &_surface, const Vec3 _center, float _radius);
 
 public: // object functions
-    const Intersection intersect(const Ray &ray) const;
+    const Intersection intersect(const Ray &ray) const override;
+    const Vec3 normal(const Vec3 P) const override;
 };
 
 #endif

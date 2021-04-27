@@ -10,6 +10,7 @@
 #include <vector>
 
 // classes we only use by pointer or reference
+class Appearance;
 class World;
 class Ray;
 
@@ -20,7 +21,8 @@ private: // private data
 
         // derived, for intersection testing
         float Vt, Vb;   // coordinates in basis
-        PolyVert(const Vec3 &_V) { V = _V; }
+        
+        PolyVert(const Vec3 _V) { V = _V; }
     };
     typedef std::vector<PolyVert> VertexList;
 
@@ -30,23 +32,22 @@ private: // private data
     Vec3 B;                 // 2nd basis vector in polygon plane
 
     // derived, for intersection testing
-    float V0_dot_N;         // dot product of with nromal vertex
+    float V0_dot_N;
 
 public: // constructors
-    Polygon(const Vec3 &_color) : Object(_color) 
-    {
-    }
+    Polygon(const Surface &_surface) : Object(_surface) {}
 
 public: // manipulators
     // add a new vertex to the polygon
     // given vertex and per-vertex normal
-    void addVertex(const Vec3 &v);
+    void addVertex(const Vec3 v);
 
     // close the polygon after the last vertex
     void closePolygon();
 
 public: // object functions
-    const Intersection intersect(const Ray &ray) const;
+    const Intersection intersect(const Ray &ray) const override;
+    const Vec3 normal(const Vec3 P) const override;
 };
 
 #endif

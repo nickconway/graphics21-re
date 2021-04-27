@@ -13,7 +13,7 @@
 class Object;
 
 class ObjectList {
-private: // private types
+public: // data
     // list of objects
     typedef std::vector<Object*> ObjList;
     ObjList objects;
@@ -30,6 +30,10 @@ public:
 public: // computational members
     // trace ray r through all objects, returning first intersection
     const Intersection trace(Ray r) const;
+
+    // trace ray r through all objects, returning true if there is an
+    // interesction between r.near and r.far
+    const bool probe(Ray r) const;
 };
 
 #endif
