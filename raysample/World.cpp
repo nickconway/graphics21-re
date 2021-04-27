@@ -14,25 +14,41 @@
 #include <math.h>
 #include <stdlib.h>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <map>
 
+// scoped global for what is enabled
+unsigned int World::effects = ~0;
+
 // read input file
 World::World(std::istream &ifile)
-: eye(0,-8,0), width(512), height(512)
 {
+    int SphereCount = 0, PolyCount = 0;
+
+    // world state defaults
+    eye = Vec3(0,-8,0);
+    width = height = 512;
+    maxdepth = 15;
+    cutoff = 0.002;
+
     // temporary variables while parsing
     Vec3 look(0,0,0), up(0,1,0);
     float xfov=45, yfov=45;
     std::string surfname;
 
     // map of surface names to colors, only need while parsing
-    std::map<std::string, Vec3> surfaceMap;
-    Vec3 *currentColor = &surfaceMap[""];
+    std::map<std::string, Surface> surfaceMap;
+    Surface *currentSurface = &surfaceMap[""];
 
     std::string token;
     while(ifile >> token) {
-        if (token == "background")
+        if (token == "maxdepth")
+            ifile >> maxdepth;
+        else if (token == "cutoff")
+            ifile >> cutoff;
+
+        else if (token == "background")
             ifile >> background;
         else if (token == "eyep")
             ifile >> eye;
@@ -47,12 +63,31 @@ World::World(std::istream &ifile)
 
         else if (token == "surface") {
             ifile >> surfname;
-            currentColor = &surfaceMap[surfname];
+            currentSurface = &surfaceMap[surfname];
         }
-
+            
+        else if (token == "ambient")
+            ifile >> currentSurface->ambient;
         else if (token == "diffuse")
-            ifile >> *currentColor;
+            ifile >> currentSurface->diffuse;
+        else if (token == "specular")
+            ifile >> currentSurface->specular;
+        else if (token == "specpow")
+            ifile >> currentSurface->e;
+        else if (token == "reflect")
+            ifile >> currentSurface->kr;
+        else if (token == "transp")
+            ifile >> currentSurface->kt;
+        else if (token == "index")
+            ifile >> currentSurface->ir;
 
+        else if (token == "light") {
+            float intensity;
+            Vec3 position;
+            ifile >> intensity >> token >> position;
+            lights.push_back(Light(Vec3(intensity, intensity, intensity), position));
+        }
+        
         else if (token == "polygon") {
             ifile >> surfname;
             Polygon *poly = new Polygon(surfaceMap[surfname]);
@@ -61,14 +96,20 @@ World::World(std::istream &ifile)
                 poly->addVertex(vert);
             ifile.clear();
             poly->closePolygon();
-            objects.addObject(poly);
+            if ((World::effects & World::POLYGONS)) {
+                ++PolyCount;
+                objects.addObject(poly);
+            }
         }
 
         else if (token == "sphere") {
             float radius;
             Vec3 center;
             ifile >> surfname >> radius >> center;
-            objects.addObject(new Sphere(surfaceMap[surfname], center, radius));
+            if ((World::effects & World::SPHERES)) {
+                ++SphereCount;
+                objects.addObject(new Sphere(surfaceMap[surfname], center, radius));
+            }
         }
     }
 
@@ -84,4 +125,9 @@ World::World(std::istream &ifile)
     left = -right;
     top = dist * tanf(yfov * M_PI/360);
     bottom = -top;
+
+    std::cout << objects.objects.size() << " Objects (" 
+        << SphereCount << " Sphere" << (SphereCount == 1 ? "" : "s") << ", " 
+        << PolyCount << " Polygon" << (PolyCount == 1 ? "" : "s") << "); "
+        << lights.size() << " Light" << (lights.size() == 1 ? "" : "s") << '\n';
 }

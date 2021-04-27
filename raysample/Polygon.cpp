@@ -5,13 +5,14 @@
 #include "Polygon.hpp"
 
 // other classes used directly in the implementation
+#include "World.hpp"
 #include "Ray.hpp"
 #include "Intersection.hpp"
 
 void
-Polygon::addVertex(const Vec3 &V)
+Polygon::addVertex(const Vec3 v)
 {
-    vertices.push_back(PolyVert(V));
+    vertices.push_back(PolyVert(v));
 }
 
 void
@@ -44,7 +45,8 @@ Polygon::intersect(const Ray &ray) const
     // compute intersection point with plane
     float t = (V0_dot_N - dot(N, ray.E)) / dot(N, ray.D);
 
-    if (t <= 0) return Intersection();  // behind ray start
+    if (t < ray.near || t > ray.far)
+        return Intersection();  // not in ray bounds: no intersection
 
     Vec3 P = ray.E + ray.D * t;
 
@@ -67,5 +69,10 @@ Polygon::intersect(const Ray &ray) const
 
     if (inside) return Intersection(this,t);
 
-    return Intersection();          // no intersection
+    return Intersection();
+}
+
+const Vec3 Polygon::normal(const Vec3 P) const
+{
+    return N;
 }

@@ -5,10 +5,11 @@
 #include "Sphere.hpp"
 
 // other classes used directly in the implementation
+#include "World.hpp"
 #include "Ray.hpp"
 
-Sphere::Sphere(const Vec3 &_color, const Vec3 &_center, float _radius)
-    : Object(_color) 
+Sphere::Sphere(const Surface &_surface, const Vec3 _center, float _radius)
+    : Object(_surface) 
 {
     C = _center;
     R = _radius;
@@ -32,12 +33,19 @@ Sphere::intersect(const Ray &r) const
     // solve quadratic equation for desired surface
     float dsq = sqrtf(discriminant);
     float t = (-b - dsq) / a;       // first intersection within ray extent?
-    if (t > 0) 
+    if (t > r.near && t < r.far) 
         return Intersection(this,t);
 
     t = (-b + dsq) / a;             // second intersection within ray extent?
-    if (t > 0) 
+    if (t > r.near && t < r.far) 
         return Intersection(this,t);
 
     return Intersection();              // sphere entirely behind start point
 }
+
+// appearance of sphere at position t on ray r
+const Vec3 Sphere::normal(const Vec3 P) const
+{
+    return normalize(P - C);
+}
+

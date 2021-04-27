@@ -17,9 +17,9 @@ Intersection::Intersection(const Object *_obj, float _t) {
 
 // return color for one intersection
 const Vec3 
-Intersection::color(const World &w) const {
+Intersection::color(const World &w, const Ray &r) const {
     if (obj)
-        return obj->color;
+        return obj->color(w, r, t);
     else
         // background color
         return w.background;

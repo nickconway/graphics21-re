@@ -26,7 +26,7 @@ public: // constructors
 
 public: // computational members
     // get color for this intersection
-    const Vec3 color(const World&) const;
+    const Vec3 color(const World&, const Ray&) const;
 };
 
 // compare two intersections by comparing t distance
