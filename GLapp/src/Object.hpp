@@ -19,6 +19,8 @@ public:
     std::vector<glm::vec3> vert;        //   per-vertex position
     std::vector<glm::vec3> norm;        //   per-vertex normal
     std::vector<glm::vec2> uv;          //   per-vertex texture coordinate
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
     std::vector<unsigned int> indices;  //   3 vertex indices per triangle
 
     // GL texture ID(s), array for extensibility to more textures
@@ -26,7 +28,7 @@ public:
     unsigned int textureIDs[NUM_TEXTURES];
 
     // GL buffer object IDs
-    enum {OBJECT_UNIFORM_BUFFER, POSITION_BUFFER, NORMAL_BUFFER, UV_BUFFER, INDEX_BUFFER, NUM_BUFFERS};
+    enum {OBJECT_UNIFORM_BUFFER, POSITION_BUFFER, NORMAL_BUFFER, UV_BUFFER, TANGENT_BUFFER, BITANGENT_BUFFER, INDEX_BUFFER, NUM_BUFFERS};
     unsigned int bufferIDs[NUM_BUFFERS];
 
     // GL shaders
@@ -47,5 +49,7 @@ public:
 
     // load an image file into a texture object
     void loadPPM(const char *imagefile, unsigned int bufferID);
+
+    void computeTangents();
 
 };

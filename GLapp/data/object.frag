@@ -21,17 +21,26 @@ uniform sampler2D PropsTexture;
 in vec2 texcoord;
 in vec3 normal;
 in vec4 position;
+in mat3 TBN;
 
 // output to frame buffer
 out vec4 fragColor;
 
 void main() {
 
-    float ambient = LightDir.a;
-    if(aoEnabled == 1)
-        ambient *= texture(PropsTexture, texcoord).b;
+    bool props = textureSize(PropsTexture, 0).x > 1;
+    bool norm = textureSize(NormalTexture, 0).x > 1;
 
     vec3 N = normalize(normal);             // surface normal
+    if(normalEnabled == 1 && norm){
+        N = texture(NormalTexture, texcoord).rgb * 2.0 - 1.0;
+        N = normalize(TBN * N);
+    }
+
+    float ambient = LightDir.a;
+    if(aoEnabled == 1 && props)
+        ambient *= texture(PropsTexture, texcoord).b;
+    
     vec3 L = normalize(LightDir.xyz);       // light direction
     float diffuse = max(0., dot(N,L));      // diffuse lighting
     float I = min(1, diffuse + ambient);   // add in ambient
@@ -44,11 +53,11 @@ void main() {
 
     float fresnel = .04 + .96 * pow(1 - dot(N, V), 5);
     float specPower = 64;
-    if(glossEnabled == 1)
+    if(glossEnabled == 1 && props)
         specPower = pow(2, 12 * texture(PropsTexture, texcoord).r);
     float specular = pow(dot(N,H), specPower) * (specPower + 1) / 2;
 
-    I  += mix(I, specular, fresnel);
+    I = mix(I, specular, fresnel);
 
     // color from texture
     vec3 color = I * vec3(.5);
@@ -57,4 +66,5 @@ void main() {
 
     // final color
     fragColor = vec4(color, 1);
+
 }

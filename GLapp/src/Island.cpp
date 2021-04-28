@@ -266,6 +266,14 @@ Island::Island(vec3 size, std::vector<const char*> textures) :
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferIDs[INDEX_BUFFER]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(indices[0]), &indices[0], GL_STATIC_DRAW);
 
+    computeTangents();
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[TANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, tangents.size() * sizeof(tangents[0]), &tangents[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[BITANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, bitangents.size() * sizeof(bitangents[0]), &bitangents[0], GL_STATIC_DRAW);
+
     updateShaders();
 }
 
@@ -309,6 +317,14 @@ void Island::addSubdivision() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferIDs[INDEX_BUFFER]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(indices[0]), &indices[0], GL_STATIC_DRAW);
 
+    computeTangents();
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[TANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, tangents.size() * sizeof(tangents[0]), &tangents[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[BITANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, bitangents.size() * sizeof(bitangents[0]), &bitangents[0], GL_STATIC_DRAW);
+
     updateShaders();
 
 }
@@ -335,6 +351,14 @@ void Island::removeSubdivision() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferIDs[INDEX_BUFFER]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(indices[0]), &indices[0], GL_STATIC_DRAW);
+
+    computeTangents();
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[TANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, tangents.size() * sizeof(tangents[0]), &tangents[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[BITANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, bitangents.size() * sizeof(bitangents[0]), &bitangents[0], GL_STATIC_DRAW);
 
     updateShaders();
 
@@ -374,6 +398,14 @@ void Island::reset() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferIDs[INDEX_BUFFER]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(indices[0]), &indices[0], GL_STATIC_DRAW);
+
+    computeTangents();
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[TANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, tangents.size() * sizeof(tangents[0]), &tangents[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[BITANGENT_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER, bitangents.size() * sizeof(bitangents[0]), &bitangents[0], GL_STATIC_DRAW);
 
     updateShaders();
 

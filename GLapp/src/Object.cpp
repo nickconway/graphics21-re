@@ -22,6 +22,7 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 
 Object::Object(std::vector<const char*> textures)
 {
+
     // create buffer objects to be used later
     glGenTextures(NUM_TEXTURES, textureIDs);
     glGenBuffers(NUM_BUFFERS, bufferIDs);
@@ -43,6 +44,7 @@ Object::Object(std::vector<const char*> textures)
         {glCreateShader(GL_FRAGMENT_SHADER), "object.frag"}
     };
     shaderID = glCreateProgram();
+
 }
 
 Object::~Object()
@@ -87,6 +89,16 @@ void Object::updateShaders()
     glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[UV_BUFFER]);
     glVertexAttribPointer(uvAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(uvAttrib);
+
+    GLint tAttrib = glGetAttribLocation(shaderID, "vT");
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[TANGENT_BUFFER]);
+    glVertexAttribPointer(tAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(tAttrib);
+
+    GLint bAttrib = glGetAttribLocation(shaderID, "vB");
+    glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[BITANGENT_BUFFER]);
+    glVertexAttribPointer(bAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(bAttrib);
 }
 
 void Object::loadPPM(const char *imagefile, unsigned int bufferID)
@@ -166,3 +178,70 @@ void Object::draw(GLapp* app, double now)
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }
 
+void Object::computeTangents() {
+
+    for (int i = 0; i < indices.size(); i += 3) {
+
+        vec3 v0 = vert[indices[i]];
+        vec3 v1 = vert[indices[i+1]];
+        vec3 v2 = vert[indices[i+2]];
+
+        vec2 uv0 = uv[indices[i]];
+        vec2 uv1 = uv[indices[i + 1]];
+        vec2 uv2 = uv[indices[i + 2]];
+
+        vec3 deltaPos1 = v1 - v0;
+        vec3 deltaPos2 = v2 - v0;
+
+        vec2 deltaUV1 = uv1 - uv0;
+        vec2 deltaUV2 = uv2 - uv0;
+
+        float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+        vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+        vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+
+        tangents.push_back(normalize(tangent - norm[indices[i]] * dot(norm[indices[i]], tangent)));
+        tangents.push_back(normalize(tangent - norm[indices[i + 1]] * dot(norm[indices[i + 1]], tangent)));
+        tangents.push_back(normalize(tangent - norm[indices[i + 2]] * dot(norm[indices[i + 2]], tangent)));
+
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+
+    }
+
+    std::vector<vec3> newTangents;
+    std::vector<vec3> newBitangents;
+    // Go through each vertex
+    for (auto vertex : vert) {
+
+        vec3 tangentSum(0, 0, 0);
+        vec3 bitangentSum(0, 0, 0);
+        int count = 0;
+
+        // Go through each triangle
+        for (int i = 0; i < indices.size(); i += 3) {
+            std::vector<vec3> triangle = { vert[indices[i]], vert[indices[i + 1]], vert[indices[i + 2]] };
+            for (auto v : triangle) {
+
+                // If vertex is in the triangle
+                if (vertex == v) {
+
+                    tangentSum += tangents[i];
+                    count++;
+
+                }
+
+            }
+
+        }
+
+        newTangents.push_back(normalize(tangentSum));
+        newBitangents.push_back(normalize(bitangentSum));
+
+    }
+
+    //tangents = newTangents;
+    //bitangents = newBitangents;
+
+}

@@ -22,15 +22,23 @@ uniform ObjectData {
 in vec2 vUV;
 in vec3 vPosition;
 in vec3 vNormal;
+in vec3 vT;
+in vec3 vB;
 
 // output to fragment shader (view space)
 out vec2 texcoord;
 out vec3 normal;
 out vec4 position;
+out mat3 TBN;
 
 void main() {
     texcoord = vUV;
     position = WorldFromModel * vec4(vPosition, 1);
+
     normal = normalize(vNormal * mat3(ModelFromWorld));
+    vec3 tangent = normalize(vT * mat3(WorldFromModel));
+    vec3 bitangent = normalize(cross(normal, tangent));
+    TBN = mat3(tangent, bitangent, normal);
+
     gl_Position = ProjFromWorld * position;
 }

@@ -1,0 +1,12 @@
+What does work:
+
+Ambient Occlusion, toggling effects, color
+
+What doesn't work:
+
+Gloss and specular are off, light does not seem to match example
+
+External Resources:
+
+Fundamentals of Computer Graphics, 4th Edition
+Class Recordings
