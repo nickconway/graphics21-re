@@ -15,6 +15,10 @@ public:
     struct SceneData {
         glm::mat4 ProjFromWorld, WorldFromProj;  // viewing matrix & inverse
         glm::vec4 LightDir;         // xyz = light direction; w = ambient
+        int colorEnabled;
+        int normalEnabled;
+        int glossEnabled;
+        int aoEnabled;
     } scene;
     unsigned int sceneUniformsID;
 

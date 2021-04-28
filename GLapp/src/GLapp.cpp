@@ -26,6 +26,10 @@ using namespace glm;  // avoid glm:: for all glm types and functions
 int subdivisions = 0;
 Island* island;
 Player* player;
+int colorEnabled = 1;
+int normalEnabled = 1;
+int glossEnabled = 1;
+int aoEnabled = 1;
 
 ///////
 // GLFW callbacks must use extern "C"
@@ -77,7 +81,32 @@ extern "C" {
         if (action == GLFW_PRESS) {
             switch (key) {
             case '1':
-                glDisable(GL_TEXTURE0);
+                colorEnabled++;
+                std::cout << "Color: " << colorEnabled % 2 << std::endl;
+                std::cout << "Normal: " << normalEnabled % 2 << std::endl;
+                std::cout << "Gloss: " << glossEnabled % 2 << std::endl;
+                std::cout << "AO: " << aoEnabled % 2 << std::endl << std::endl;
+                return;
+            case '2':
+                normalEnabled++;
+                std::cout << "Color: " << colorEnabled % 2 << std::endl;
+                std::cout << "Normal: " << normalEnabled % 2 << std::endl;
+                std::cout << "Gloss: " << glossEnabled % 2 << std::endl;
+                std::cout << "AO: " << aoEnabled % 2 << std::endl << std::endl;
+                return;
+            case '3':
+                glossEnabled++;
+                std::cout << "Color: " << colorEnabled % 2 << std::endl;
+                std::cout << "Normal: " << normalEnabled % 2 << std::endl;
+                std::cout << "Gloss: " << glossEnabled % 2 << std::endl;
+                std::cout << "AO: " << aoEnabled % 2 << std::endl << std::endl;
+                return;
+            case '4':
+                aoEnabled++;
+                std::cout << "Color: " << colorEnabled % 2 << std::endl;
+                std::cout << "Normal: " << normalEnabled % 2 << std::endl;
+                std::cout << "Gloss: " << glossEnabled % 2 << std::endl;
+                std::cout << "AO: " << aoEnabled % 2 << std::endl << std::endl;
                 return;
             case 'A':                   // move left
                 player->strafeSpeed = -1;
@@ -239,6 +268,11 @@ void GLapp::sceneUpdate(double dTime)
         * rotate(mat4(1), pan, vec3(0, 0, 1))
         * translate(mat4(1), vec3(-player->xPos, -player->yPos, -player->zPos));
     scene.WorldFromProj = inverse(scene.ProjFromWorld);
+
+    scene.colorEnabled = colorEnabled % 2;
+    scene.normalEnabled = normalEnabled % 2;
+    scene.glossEnabled = glossEnabled % 2;
+    scene.aoEnabled = aoEnabled % 2;
 
     glBindBuffer(GL_UNIFORM_BUFFER, sceneUniformsID);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(SceneData), &scene);

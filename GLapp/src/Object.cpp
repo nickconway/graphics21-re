@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string>
+#include <iostream>
 
 using namespace glm;  // avoid glm:: for all glm types and functions
 
@@ -146,6 +147,7 @@ void Object::draw(GLapp* app, double now)
     // bind color texture to active texture #0
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIDs[COLOR_TEXTURE]);
+    glDisable(GL_TEXTURE_2D);
 
     // bind normal texture to active texture #1
     glActiveTexture(GL_TEXTURE1);
@@ -163,3 +165,4 @@ void Object::draw(GLapp* app, double now)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferIDs[INDEX_BUFFER]);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }
+

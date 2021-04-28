@@ -6,6 +6,10 @@ layout(std140)                  // standard layout
 uniform SceneData {             // like a class name
     mat4 ProjFromWorld, WorldFromProj;
     vec4 LightDir;
+    int colorEnabled;
+    int normalEnabled;
+    int glossEnabled;
+    int aoEnabled;
 };
 
 // per-object data

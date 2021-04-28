@@ -6,6 +6,10 @@ layout(std140)                  // standard layout
 uniform SceneData {             // like a class name
     mat4 ProjFromWorld, WorldFromProj;
     vec4 LightDir;
+    int colorEnabled;
+    int normalEnabled;
+    int glossEnabled;
+    int aoEnabled;
 };
 
 // shader settings
@@ -23,18 +27,14 @@ out vec4 fragColor;
 
 void main() {
 
-    // solid color or from texture
-    vec3 color = vec3(.5);
-    if(textureSize(ColorTexture, 0) != ivec2(1, 1))
-        color = texture(ColorTexture, 4. * texcoord).rgb;
-
-    float ao = texture(PropsTexture, texcoord).b;
-    float ambient = LightDir.a * ao;
+    float ambient = LightDir.a;
+    if(aoEnabled == 1)
+        ambient *= texture(PropsTexture, texcoord).b;
 
     vec3 N = normalize(normal);             // surface normal
     vec3 L = normalize(LightDir.xyz);       // light direction
     float diffuse = max(0., dot(N,L));      // diffuse lighting
-    float I = min(1., diffuse + ambient);   // add in ambient
+    float I = min(1, diffuse + ambient);   // add in ambient
 
     vec4 eyeProj = vec4(0,0,-1,0);
     vec4 eyeWorld = WorldFromProj * eyeProj;
@@ -42,15 +42,18 @@ void main() {
     V = normalize(V);
     vec3 H = normalize(V + L);
 
-    float gloss = texture(PropsTexture, texcoord).r;
-    float fresnel = .04 + (1. - .04) * pow(1. - dot(N, V), 5.);
-    float specPower = pow(2, 12 * gloss);
+    float fresnel = .04 + .96 * pow(1 - dot(N, V), 5);
+    float specPower = 64;
+    if(glossEnabled == 1)
+        specPower = pow(2, 12 * texture(PropsTexture, texcoord).r);
     float specular = pow(dot(N,H), specPower) * (specPower + 1) / 2;
-    
-    //I += specular;
+
+    I  += mix(I, specular, fresnel);
 
     // color from texture
-    color = I * texture(ColorTexture, texcoord).rgb;
+    vec3 color = I * vec3(.5);
+    if(colorEnabled == 1)
+        color = I * texture(ColorTexture, texcoord).rgb;
 
     // final color
     fragColor = vec4(color, 1);

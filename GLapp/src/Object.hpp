@@ -47,4 +47,5 @@ public:
 
     // load an image file into a texture object
     void loadPPM(const char *imagefile, unsigned int bufferID);
+
 };
