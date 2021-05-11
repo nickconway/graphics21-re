@@ -297,11 +297,11 @@ Color trace(Ray ray, Color color, Color background, vector<Light> lights, vector
 	Vector3D P(closestIntersection.location);
 	Vector3D N((P - closestIntersection.sphere.center).normalization());
 	Vector3D R((ray.d - N * 2 * N.dotProduct(ray.d)).normalization());
-	Vector3D H((ray.d * -1 + R).normalization());
 
 	for(auto light = lights.begin(); light != lights.end(); light++){
 
 		Vector3D L = (light->position - P).normalization();
+		Vector3D H((ray.d * -1 + L).normalization());
 
 		if(!anyhit(Ray(P, L), (light->position - P).length(), spheres) && N.dotProduct(L) > 0){
 
