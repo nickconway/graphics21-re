@@ -7,6 +7,8 @@
 
 using namespace std;
 
+const float epsilon = .01;
+
 class Color{
 
 	public:
@@ -139,6 +141,13 @@ class Intersection{
 	Sphere sphere;
 	Vector3D location;
 
+	bool operator==(const Intersection& rhs) const{
+		return this->location.x == rhs.location.x &&
+			this->location.y == rhs.location.y &&
+			this->location.z == rhs.location.z &&
+			this->t == rhs.t;
+	}
+
 };
 
 class Light{
@@ -159,8 +168,9 @@ class Ray{
 	Vector3D e;
 	Vector3D d;
 	vector<Intersection> intersections;
+	float n, f;
 
-	Ray(Vector3D e, Vector3D d): e(e), d(d){}
+	Ray(Vector3D e, Vector3D d, float n, float f): e(e), d(d), n(n), f(f){}
 
 	// Parametric ray form
 	Vector3D parametric(float t){
@@ -262,19 +272,147 @@ bool anyhit(Ray ray, float distance, vector<Sphere> spheres){
 
 }
 
-Color trace(Ray ray, Color color, Color background, vector<Light> lights, vector<Surface> surfaces, vector<Sphere> spheres, int depth, int maxdepth, float cutoff, float reflectionCoefficient){
+struct Node{
 
-	ray.getIntersections(spheres);
-	Surface closestSurface;
+	vector<Sphere> spheres;
+	Vector3D split;
+	Node* left;
+	Node* right;
 
-	if(ray.intersections.empty()){
+	Node(vector<Sphere> spheres_){
+		spheres = spheres_;
+	}
+};
+
+Node* kdBuild(vector<Sphere> spheres){
+
+	if(spheres.size() <= 0){
+		return nullptr;
+	}
+
+	Node* root = new Node(spheres);
+
+	root->left = nullptr;
+	root->right = nullptr;
+
+	vector<Sphere> leftSpheres, rightSpheres;
+
+	float xPlus = -INFINITY;
+	float xMin = INFINITY;
+	float yPlus = -INFINITY;
+	float yMin = INFINITY;
+	float zPlus = -INFINITY;
+	float zMin = INFINITY;
+
+	for(auto sphere: root->spheres){
+		xPlus = max(sphere.center.x + sphere.radius, xPlus);
+		xMin = min(sphere.center.x - sphere.radius, xMin);
+		yPlus = max(sphere.center.y + sphere.radius, yPlus);
+		yMin = min(sphere.center.y - sphere.radius, yMin);
+		zPlus = max(sphere.center.z + sphere.radius, zPlus);
+		zMin = min(sphere.center.z - sphere.radius, zMin);
+	}
+
+	float xRange = xPlus - xMin;
+	float yRange = yPlus - yMin;
+	float zRange = zPlus - zMin;
+
+	if(max(max(xRange, yRange), max(yRange, zRange)) == xRange){
+		root->split = Vector3D(xRange / 2, 0, 0);
+	} else if(max(max(xRange, yRange), max(yRange, zRange)) == yRange){
+		root->split = Vector3D(0, yRange / 2, 0);
+	} else if(max(max(xRange, yRange), max(yRange, zRange)) == zRange){
+		root->split = Vector3D(0, 0, zRange / 2);
+	}
+
+	for(auto sphere: root->spheres){
+
+		if(root->split.x != 0){
+
+			float distance = abs(sphere.center.x - root->split.x);
+
+			if(distance < sphere.radius){
+				root->spheres.push_back(sphere);
+			} else if(sphere.center.x - root->split.x < 0) {
+				leftSpheres.push_back(sphere);
+			} else if(sphere.center.x - root->split.x > 0) {
+				rightSpheres.push_back(sphere);
+			}
+
+		} else if(root->split.y != 0){
+
+			float distance = abs(sphere.center.y - root->split.y);
+
+			if(distance < sphere.radius){
+				root->spheres.push_back(sphere);
+			} else if(sphere.center.y - root->split.y < 0) {
+				leftSpheres.push_back(sphere);
+			} else if(sphere.center.y - root->split.y > 0) {
+				rightSpheres.push_back(sphere);
+			}
+
+		} else if(root->split.z != 0){
+
+			float distance = abs(sphere.center.z - root->split.z);
+
+			if(distance < sphere.radius){
+				root->spheres.push_back(sphere);
+			} else if(sphere.center.z - root->split.z < 0) {
+				leftSpheres.push_back(sphere);
+			} else if(sphere.center.z - root->split.z > 0) {
+				rightSpheres.push_back(sphere);
+			}
+
+		}
+
+	}
+
+	root->left = kdBuild(leftSpheres);
+	root->right = kdBuild(rightSpheres);
+
+	return root;
+
+}
+
+void printTree(Node* root){
+	if(root == nullptr){
+		return;
+	}
+	cout << root->spheres.size() << endl;
+	printTree(root->left);
+	printTree(root->right);
+}
+
+// kdtree
+void kdTraverse(Intersection& closest, Ray ray, Node* root, Vector3D p){
+
+	if(root == nullptr){
+		closest.t = -100;
+		return;
+	}
+
+	for(auto sphere: root->spheres){
+		if(ray.intersectsSphere(sphere)){
+
+		}
+	}
+
+}
+
+Color trace(Node* root, Ray ray, Color color, Color background, vector<Light> lights, vector<Surface> surfaces, vector<Sphere> spheres, int depth, int maxdepth, float cutoff, float reflectionCoefficient){
+
+	Intersection closestIntersection;
+	// kdTraverse(closestIntersection, ray, root, ray.e + ray.d * ray.n);
+
+	return background;
+
+	if(closestIntersection.t == -100){
 
 		return background;
 
 	}
 
-	Intersection closestIntersection = ray.getClosestIntersection();
-
+	Surface closestSurface;
 	for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
 
 		if(surface->surfaceID == closestIntersection.sphere.surfaceID){
@@ -303,7 +441,7 @@ Color trace(Ray ray, Color color, Color background, vector<Light> lights, vector
 		Vector3D L = (light->position - P).normalization();
 		Vector3D H((ray.d * -1 + L).normalization());
 
-		if(!anyhit(Ray(P, L), (light->position - P).length(), spheres) && N.dotProduct(L) > 0){
+		if(!anyhit(Ray(P, L, epsilon, INFINITY), (light->position - P).length(), spheres) && N.dotProduct(L) > 0){
 
 			// Calculate diffusion value
 			color = color + closestSurface.diffuse * light->intensity * N.dotProduct(L);
@@ -319,7 +457,7 @@ Color trace(Ray ray, Color color, Color background, vector<Light> lights, vector
 
 	}
 
-	color = color + trace(Ray(P, R), color, background, lights, surfaces, spheres, depth + 1, maxdepth, cutoff, reflectionCoefficient) * closestSurface.reflect;
+	color = color + trace(root, Ray(P, R, epsilon, INFINITY), color, background, lights, surfaces, spheres, depth + 1, maxdepth, cutoff, reflectionCoefficient) * closestSurface.reflect;
 
 	return color;
 
@@ -496,6 +634,9 @@ int main(){
 
 	}
 
+	Node* root = kdBuild(spheres);
+	printTree(root);
+
 	// Create orthogonal basis and other necessities
 	Vector3D d = eyep - lookp;
 
@@ -522,10 +663,10 @@ int main(){
 			Vector3D s(eyep + u.normalization() * us + v.normalization() * vs - w.normalization() * d.length());
 
 			// Calculate ray from pixel location
-			Ray ray(eyep, (s - eyep));
+			Ray ray(eyep, (s - eyep), epsilon, INFINITY);
 
 			// Get pixel color
-			Color color = trace(ray, background, background, lights, surfaces, spheres, 0, maxdepth, cutoff, 1);
+			Color color = trace(root, ray, background, background, lights, surfaces, spheres, 0, maxdepth, cutoff, 1);
 
 			// Calculate pixel color values
 			pixels[y * width * 3 + x * 3 + 0] = (color.r < 0) ? 0 : (color.r > 1) ? 255 : (unsigned char)(color.r * 255);
