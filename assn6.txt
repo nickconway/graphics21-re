@@ -1,0 +1,12 @@
+What does work:
+
+Unsure
+
+What doesn't work:
+
+Unsure, I believe most parts are broken or unfinished
+
+External Resources:
+
+Fundamentals of Computer Graphics, 4th Edition
+Class Recordings
