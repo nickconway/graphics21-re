@@ -359,10 +359,27 @@ Node* kdBuild(vector<Sphere> spheres){
 
 }
 
+float planeIntersect(Ray ray, int axis, float split){
+
+	float t;
+
+	return t;
+
+}
+
 // kdtree
 void kdTraverse(Intersection& closest, Ray ray, Node* root, Vector3D p){
 
 	float t;
+	Intersection intersection;
+	int pAxis;
+	if(root->axis == 0){
+		pAxis = p.x;
+	} else if(root->axis == 1){
+		pAxis = p.y;
+	} else {
+		pAxis = p.z;
+	}
 
 	if(root == nullptr){
 		closest.t = INFINITY;
@@ -380,8 +397,8 @@ void kdTraverse(Intersection& closest, Ray ray, Node* root, Vector3D p){
 			if(newT < t){
 				t = newT;
 				closest.t = t;
-				closest.sphere = *sphere;
-				closest.location = parametric(t);
+				closest.sphere = sphere;
+				closest.location = ray.parametric(t);
 			}
 
 		}
@@ -390,29 +407,30 @@ void kdTraverse(Intersection& closest, Ray ray, Node* root, Vector3D p){
 
 	if(ray.n < closest.t < ray.f){
 		ray.f = t;
-		closest = closestSphere;
+		closest = intersection;
 	}
 
-	if(p[root->axis] < root->split){
+	if(pAxis < root->split){
 		kdTraverse(closest, ray, root->left, p);
+		t = planeIntersect(ray, root->axis, root->split);
 	}
 
 }
 
 Color trace(Node* root, Ray ray, Color color, Color background, vector<Light> lights, vector<Surface> surfaces, vector<Sphere> spheres, int depth, int maxdepth, float cutoff, float reflectionCoefficient){
 
-	Intersection closestIntersection;
-	// kdTraverse(closestIntersection, ray, root, ray.e + ray.d * ray.n);
 
-	return background;
+	ray.getIntersections(spheres);
+	Surface closestSurface;
 
-	if(closestIntersection.t == INFINITY){
+	if(ray.intersections.empty()){
 
 		return background;
 
 	}
 
-	Surface closestSurface;
+	Intersection closestIntersection = ray.getClosestIntersection();
+
 	for(auto surface = surfaces.begin(); surface != surfaces.end(); ++surface){
 
 		if(surface->surfaceID == closestIntersection.sphere.surfaceID){
@@ -634,7 +652,8 @@ int main(){
 
 	}
 
-	Node* root = kdBuild(spheres);
+	Node* root;
+	// root = kdBuild(spheres);
 
 	// Create orthogonal basis and other necessities
 	Vector3D d = eyep - lookp;

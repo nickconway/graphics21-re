@@ -4,7 +4,7 @@ Unsure
 
 What doesn't work:
 
-Unsure, I believe most parts are broken or unfinished
+Unsure, I believe most parts are broken or unfinished, code is using old method to show output
 
 External Resources:
 
