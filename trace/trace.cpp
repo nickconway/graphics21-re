@@ -274,14 +274,12 @@ bool anyhit(Ray ray, float distance, vector<Sphere> spheres){
 
 struct Node{
 
-	vector<Sphere> spheres;
-	Vector3D split;
+	vector<Sphere> intersectedSpheres;
+	int axis;
+	float split;
 	Node* left;
 	Node* right;
 
-	Node(vector<Sphere> spheres_){
-		spheres = spheres_;
-	}
 };
 
 Node* kdBuild(vector<Sphere> spheres){
@@ -290,79 +288,66 @@ Node* kdBuild(vector<Sphere> spheres){
 		return nullptr;
 	}
 
-	Node* root = new Node(spheres);
+	Node* root = new Node;
+	vector<Sphere> leftSpheres, rightSpheres;
 
 	root->left = nullptr;
 	root->right = nullptr;
 
-	vector<Sphere> leftSpheres, rightSpheres;
-
-	float xPlus = -INFINITY;
+	float xMax = -INFINITY;
 	float xMin = INFINITY;
-	float yPlus = -INFINITY;
+	float yMax = -INFINITY;
 	float yMin = INFINITY;
-	float zPlus = -INFINITY;
+	float zMax = -INFINITY;
 	float zMin = INFINITY;
 
-	for(auto sphere: root->spheres){
-		xPlus = max(sphere.center.x + sphere.radius, xPlus);
+	for(auto sphere: spheres){
+		xMax = max(sphere.center.x + sphere.radius, xMax);
 		xMin = min(sphere.center.x - sphere.radius, xMin);
-		yPlus = max(sphere.center.y + sphere.radius, yPlus);
+		yMax = max(sphere.center.y + sphere.radius, yMax);
 		yMin = min(sphere.center.y - sphere.radius, yMin);
-		zPlus = max(sphere.center.z + sphere.radius, zPlus);
+		zMax = max(sphere.center.z + sphere.radius, zMax);
 		zMin = min(sphere.center.z - sphere.radius, zMin);
 	}
 
-	float xRange = xPlus - xMin;
-	float yRange = yPlus - yMin;
-	float zRange = zPlus - zMin;
+	float xRange = xMax - xMin;
+	float yRange = yMax - yMin;
+	float zRange = zMax - zMin;
+	float maxRange = max(max(xRange, yRange), max(yRange, zRange));
 
-	if(max(max(xRange, yRange), max(yRange, zRange)) == xRange){
-		root->split = Vector3D(xRange / 2, 0, 0);
-	} else if(max(max(xRange, yRange), max(yRange, zRange)) == yRange){
-		root->split = Vector3D(0, yRange / 2, 0);
-	} else if(max(max(xRange, yRange), max(yRange, zRange)) == zRange){
-		root->split = Vector3D(0, 0, zRange / 2);
+	if(maxRange == xRange){
+		root->split = maxRange / 2;
+		root->axis = 0;
+	} else if(maxRange == yRange){
+		root->split = maxRange / 2;
+		root->axis = 1;
+	} else if(maxRange == zRange){
+		root->split = maxRange / 2;
+		root->axis = 2;
 	}
 
-	for(auto sphere: root->spheres){
+	cout << maxRange << " " << xRange << " " << yRange << " " << zRange << " (" << root->split << ")" << endl;
 
-		if(root->split.x != 0){
+	for(auto sphere: spheres){
 
-			float distance = abs(sphere.center.x - root->split.x);
+		float distance, sphereCenterAxis;
+		if(root->axis == 0){
+			distance = abs(sphere.center.x - root->split);
+			sphereCenterAxis = sphere.center.x;
+		} else if(root->axis == 1){
+			distance = abs(sphere.center.y - root->split);
+			sphereCenterAxis = sphere.center.y;
+		} else if(root->axis == 2){
+			distance = abs(sphere.center.z - root->split);
+			sphereCenterAxis = sphere.center.z;
+		}
 
-			if(distance < sphere.radius){
-				root->spheres.push_back(sphere);
-			} else if(sphere.center.x - root->split.x < 0) {
-				leftSpheres.push_back(sphere);
-			} else if(sphere.center.x - root->split.x > 0) {
-				rightSpheres.push_back(sphere);
-			}
-
-		} else if(root->split.y != 0){
-
-			float distance = abs(sphere.center.y - root->split.y);
-
-			if(distance < sphere.radius){
-				root->spheres.push_back(sphere);
-			} else if(sphere.center.y - root->split.y < 0) {
-				leftSpheres.push_back(sphere);
-			} else if(sphere.center.y - root->split.y > 0) {
-				rightSpheres.push_back(sphere);
-			}
-
-		} else if(root->split.z != 0){
-
-			float distance = abs(sphere.center.z - root->split.z);
-
-			if(distance < sphere.radius){
-				root->spheres.push_back(sphere);
-			} else if(sphere.center.z - root->split.z < 0) {
-				leftSpheres.push_back(sphere);
-			} else if(sphere.center.z - root->split.z > 0) {
-				rightSpheres.push_back(sphere);
-			}
-
+		if(distance < sphere.radius){
+			root->intersectedSpheres.push_back(sphere);
+		} else if(sphereCenterAxis < root->split) {
+			leftSpheres.push_back(sphere);
+		} else if(sphereCenterAxis > root->split) {
+			rightSpheres.push_back(sphere);
 		}
 
 	}
@@ -374,27 +359,42 @@ Node* kdBuild(vector<Sphere> spheres){
 
 }
 
-void printTree(Node* root){
-	if(root == nullptr){
-		return;
-	}
-	cout << root->spheres.size() << endl;
-	printTree(root->left);
-	printTree(root->right);
-}
-
 // kdtree
 void kdTraverse(Intersection& closest, Ray ray, Node* root, Vector3D p){
 
+	float t;
+
 	if(root == nullptr){
-		closest.t = -100;
+		closest.t = INFINITY;
 		return;
 	}
 
-	for(auto sphere: root->spheres){
+	for(auto sphere: root->intersectedSpheres){
+
 		if(ray.intersectsSphere(sphere)){
 
+			Vector3D c = sphere.center;
+			float r = sphere.radius;
+
+			float newT = ((ray.d * -1).dotProduct(ray.e - c) - sqrt(ray.getDiscriminant(c, r))) / (ray.d.dotProduct(ray.d));
+			if(newT < t){
+				t = newT;
+				closest.t = t;
+				closest.sphere = *sphere;
+				closest.location = parametric(t);
+			}
+
 		}
+
+	}
+
+	if(ray.n < closest.t < ray.f){
+		ray.f = t;
+		closest = closestSphere;
+	}
+
+	if(p[root->axis] < root->split){
+		kdTraverse(closest, ray, root->left, p);
 	}
 
 }
@@ -406,7 +406,7 @@ Color trace(Node* root, Ray ray, Color color, Color background, vector<Light> li
 
 	return background;
 
-	if(closestIntersection.t == -100){
+	if(closestIntersection.t == INFINITY){
 
 		return background;
 
@@ -635,7 +635,6 @@ int main(){
 	}
 
 	Node* root = kdBuild(spheres);
-	printTree(root);
 
 	// Create orthogonal basis and other necessities
 	Vector3D d = eyep - lookp;
