@@ -1,0 +1,32 @@
+CMSC 435 Assignment 5 Rubric
+============================
+
+30/30 - Basics
+    10/10 - assn6.txt submitted and informative
+    10/10 - Multiple incremental checkins during development
+    5/ 5 - All source files submitted, no build files
+    5/ 5 - Compiles without error
+35/35 - KD tree build
+    5/ 5 - Compute correct bounds for spheres
+    5/ 5 - Compute correct bounds for objects in node
+    5/ 5 - Choose correct splitting axis
+    5/ 5 - Choose correct splitting plane
+    5/ 5 - Objects that cross splitting plane in node object list
+    5/ 5 - Objects that don't cross splitting plane in correct child
+    5/ 5 - Build recursively
+17/35 - KD tree use
+    2/ 5 - KD tree traversal for regular rays
+    0/ 5 - KD tree traversal for shadow rays
+    2/ 5 - Find correct leaf node to start traversal
+    4/ 5 - Intersect against objects in each node
+    1/ 5 - Compute node exit-plane intersection
+    3/ 5 - Find next node
+    5/ 5 - Early termination conditions
+
+Extra Credit:
+/10 - Save and load KD tree
+/15 - Surface Area Heuristic (SAH as implementation or option for axis/plane)
+------
+-10   two day late submission.
+------ 
+72/100
